@@ -14,8 +14,7 @@ const TimetableContainer = styled.div`
   border: 1px solid #e0e0e0;
   margin: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  height: fit-content;
-  min-height: calc(100vh - 40px);
+  flex: 1;
   display: flex;
   flex-direction: column;
 
@@ -67,15 +66,24 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
   `}
 `;
 
+const RowsWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
 const TimeSlotRow = styled.div`
+  flex: 1;
   display: grid;
   grid-template-columns: 100px repeat(6, minmax(120px, 1fr));
   min-width: 800px;
   border-bottom: 1px solid #e0e0e0;
-  min-height: 100px;
 
   &:last-child {
-    border-bottom: none;
+    border-bottom: 1px solid #e0e0e0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    margin-bottom: -1px;
   }
 `;
 
@@ -169,18 +177,6 @@ const AddButton = styled.button`
 
   &:hover {
     background: #d0d0d0;
-  }
-`;
-
-const MobileOnly = styled.div`
-  display: none;
-  @media (max-width: 767px) {
-    display: block;
-    padding: 10px;
-    background: #fff;
-    margin-bottom: 5px;
-    border-radius: 4px;
-    font-weight: bold;
   }
 `;
 
@@ -306,7 +302,6 @@ export const Timetable: React.FC<TimetableProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <TimetableContainer>
-        <MobileOnly>Прокрутите вправо для просмотра расписания →</MobileOnly>
         <Header>
           <HeaderCell></HeaderCell>
           {days.map((day, index) => (
@@ -343,50 +338,51 @@ export const Timetable: React.FC<TimetableProps> = ({
             </HeaderCell>
           ))}
         </Header>
-
-        {DEFAULT_TIME_SLOTS.map((timeSlot) => {
-          const isCurrentTime = isCurrentTimeSlot(timeSlot);
-          return (
-            <TimeSlotRow key={timeSlot.id}>
-              <TimeCell $isCurrent={isCurrentTime}>
-                <span className="start-time">{timeSlot.startTime}</span>
-                <span className="end-time">{timeSlot.endTime}</span>
-              </TimeCell>
-              {days.map((_, dayIndex) => {
-                const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
-                const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
-                
-                return (
-                  <DropTarget
-                    key={dayIndex}
-                    timeSlot={timeSlot}
-                    dayIndex={dayIndex}
-                    onMoveCourse={onMoveCourse!}
-                    $isCurrent={currentDayIndex === dayIndex}
-                  >
-                    {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
-                    {slotCourses.map(course => (
-                      <CourseBlock
-                        key={course.id}
-                        course={course}
-                        onEdit={onEditCourse}
-                      />
-                    ))}
-                    <AddButton 
-                      className="add-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddCourse?.(timeSlot, dayIndex);
-                      }}
+        <RowsWrapper>
+          {DEFAULT_TIME_SLOTS.map((timeSlot) => {
+            const isCurrentTime = isCurrentTimeSlot(timeSlot);
+            return (
+              <TimeSlotRow key={timeSlot.id}>
+                <TimeCell $isCurrent={isCurrentTime}>
+                  <span className="start-time">{timeSlot.startTime}</span>
+                  <span className="end-time">{timeSlot.endTime}</span>
+                </TimeCell>
+                {days.map((_, dayIndex) => {
+                  const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
+                  const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
+                  
+                  return (
+                    <DropTarget
+                      key={dayIndex}
+                      timeSlot={timeSlot}
+                      dayIndex={dayIndex}
+                      onMoveCourse={onMoveCourse!}
+                      $isCurrent={currentDayIndex === dayIndex}
                     >
-                      + Добавить занятие
-                    </AddButton>
-                  </DropTarget>
-                );
-              })}
-            </TimeSlotRow>
-          );
-        })}
+                      {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
+                      {slotCourses.map(course => (
+                        <CourseBlock
+                          key={course.id}
+                          course={course}
+                          onEdit={onEditCourse}
+                        />
+                      ))}
+                      <AddButton 
+                        className="add-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddCourse?.(timeSlot, dayIndex);
+                        }}
+                      >
+                        + Добавить занятие
+                      </AddButton>
+                    </DropTarget>
+                  );
+                })}
+              </TimeSlotRow>
+            );
+          })}
+        </RowsWrapper>
       </TimetableContainer>
     </DndProvider>
   );

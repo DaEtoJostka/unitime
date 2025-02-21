@@ -6,7 +6,7 @@ import { CourseForm } from './components/CourseForm';
 import styled from 'styled-components';
 import { ScheduleTemplate } from './types/course';
 import { v4 as uuidv4 } from 'uuid';
-import { MdEdit, MdAdd, MdDelete } from 'react-icons/md';
+import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
 
 const AppContainer = styled.div`
@@ -17,12 +17,13 @@ const AppContainer = styled.div`
   gap: 20px;
 `;
 
-const SidebarContainer = styled.div`
-  width: 280px;
+const SidebarContainer = styled.div<{ collapsed: boolean }>`
+  width: ${props => props.collapsed ? '40px' : '280px'};
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: width 0.3s ease;
 `;
 
 const MainContent = styled.div`
@@ -171,6 +172,20 @@ const ImportDropZone = styled.div<{ $isDragOver: boolean }>`
   }
 `;
 
+const SidebarToggleButton = styled.button`
+  background: #f8f9fa;
+  border: 1px solid #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  padding: 8px;
+  margin-top: auto;
+`;
+
 export const App: React.FC = () => {
   const [templates, setTemplates] = useState<ScheduleTemplate[]>(() => {
     try {
@@ -216,6 +231,7 @@ export const App: React.FC = () => {
   const [editedTemplateName, setEditedTemplateName] = useState('');
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
 
@@ -431,124 +447,131 @@ export const App: React.FC = () => {
 
   return (
     <AppContainer>
-      <SidebarContainer>
-        <div style={{ position: 'relative', width: '100%' }}>
-          <SelectNative
-            id="template-select"
-            value={currentTemplateId}
-            onChange={handleTemplateChange}
-            style={{ fontWeight: 600 }}
-          >
-            {templates.map(template => (
-              <option key={template.id} value={template.id}>
-                {template.name}
-              </option>
-            ))}
-          </SelectNative>
-          
-          {editingTemplateId === currentTemplateId && (
-            <input
-              value={editedTemplateName}
-              onChange={(e) => setEditedTemplateName(e.target.value)}
-              onBlur={saveTemplateName}
-              onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                padding: '8px 12px',
-                border: '2px solid #2196f3',
-                borderRadius: '8px',
-                boxSizing: 'border-box',
-                fontWeight: 600
-              }}
-              autoFocus
-            />
-          )}
-        </div>
+      <SidebarContainer collapsed={isSidebarCollapsed}>
+        {!isSidebarCollapsed && (
+          <>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <SelectNative
+                id="template-select"
+                value={currentTemplateId}
+                onChange={handleTemplateChange}
+                style={{ fontWeight: 600 }}
+              >
+                {templates.map(template => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </SelectNative>
+              
+              {editingTemplateId === currentTemplateId && (
+                <input
+                  value={editedTemplateName}
+                  onChange={(e) => setEditedTemplateName(e.target.value)}
+                  onBlur={saveTemplateName}
+                  onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    padding: '8px 12px',
+                    border: '2px solid #2196f3',
+                    borderRadius: '8px',
+                    boxSizing: 'border-box',
+                    fontWeight: 600
+                  }}
+                  autoFocus
+                />
+              )}
+            </div>
 
-        <ActionButton 
-          variant="primary"
-          onClick={() => startEditingTemplate(currentTemplateId)}
-        >
-          <MdEdit /> Переименовать
-        </ActionButton>
-        
-        <ActionButton 
-          variant="success"
-          onClick={createNewTemplate}
-        >
-          <MdAdd /> Новый шаблон
-        </ActionButton>
-        
-        {templates.length > 1 && (
-          <ActionButton
-            variant="danger"
-            onClick={deleteCurrentTemplate}
-          >
-            <MdDelete /> Удалить шаблон
-          </ActionButton>
-        )}
+            <ActionButton 
+              variant="primary"
+              onClick={() => startEditingTemplate(currentTemplateId)}
+            >
+              <MdEdit /> Переименовать
+            </ActionButton>
+            
+            <ActionButton 
+              variant="success"
+              onClick={createNewTemplate}
+            >
+              <MdAdd /> Новый шаблон
+            </ActionButton>
+            
+            {templates.length > 1 && (
+              <ActionButton
+                variant="danger"
+                onClick={deleteCurrentTemplate}
+              >
+                <MdDelete /> Удалить шаблон
+              </ActionButton>
+            )}
 
-        <Button
-          onClick={() => {
-            const currentTemplate = templates.find(t => t.id === currentTemplateId);
-            if (currentTemplate?.courses.length) {
-              handleExportTemplate(currentTemplate);
-            } else {
-              alert('Невозможно экспортировать пустой шаблон');
-            }
-          }}
-          title="Экспорт текущего шаблона"
-          disabled={!currentCourses.length}
-          style={{ width: '100%' }}
-        >
-          📤 Экспорт
-        </Button>
-
-        <ImportDropZone
-          $isDragOver={dragOver}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setDragOver(true);
-          }}
-          onDragEnter={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setDragOver(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setDragOver(false);
-          }}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('import-file')?.click()}
-        >
-          <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
-        </ImportDropZone>
-        
-        <input
-          id="import-file"
-          type="file"
-          accept="application/json"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (ev) => {
-                if (ev.target?.result) {
-                  handleImportTemplate(ev.target.result as string);
+            <Button
+              onClick={() => {
+                const currentTemplate = templates.find(t => t.id === currentTemplateId);
+                if (currentTemplate?.courses.length) {
+                  handleExportTemplate(currentTemplate);
+                } else {
+                  alert('Невозможно экспортировать пустой шаблон');
                 }
-              };
-              reader.readAsText(file);
-            }
-          }}
-        />
+              }}
+              title="Экспорт текущего шаблона"
+              disabled={!currentCourses.length}
+              style={{ width: '100%' }}
+            >
+              📤 Экспорт
+            </Button>
+
+            <ImportDropZone
+              $isDragOver={dragOver}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDragOver(true);
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDragOver(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDragOver(false);
+              }}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('import-file')?.click()}
+            >
+              <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
+            </ImportDropZone>
+            
+            <input
+              id="import-file"
+              type="file"
+              accept="application/json"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    if (ev.target?.result) {
+                      handleImportTemplate(ev.target.result as string);
+                    }
+                  };
+                  reader.readAsText(file);
+                }
+              }}
+            />
+          </>
+        )}
+        <SidebarToggleButton onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+          {isSidebarCollapsed ? <MdChevronRight /> : <MdChevronLeft />}
+        </SidebarToggleButton>
       </SidebarContainer>
       
       <MainContent>
