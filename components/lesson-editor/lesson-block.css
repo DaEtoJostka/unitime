@@ -1,0 +1,12 @@
+/* Add transform override for smooth dragging */
+.lesson-block {
+  position: relative;
+  transform: none !important; /* Override dnd-kit transforms */
+  transition: none !important; /* Disable default transitions */
+}
+
+/* Add dropzone styling indicators */
+.dragging-over {
+  background-color: rgba(0, 200, 0, 0.1);
+  border: 2px dashed #00c853;
+} 
