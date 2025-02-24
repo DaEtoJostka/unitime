@@ -8,6 +8,7 @@ import { ScheduleTemplate } from './types/course';
 import { v4 as uuidv4 } from 'uuid';
 import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
+import calendarIcon from './assets/calendar-icon.png';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -15,6 +16,28 @@ const AppContainer = styled.div`
   padding: 20px;
   display: flex;
   gap: 20px;
+`;
+
+const LogoArea = styled.div`
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 16px;
+`;
+
+const LogoText = styled.div`
+  font-size: 32px;
+  font-weight: bold;
+  color: #2196f3;
+`;
+
+const LogoImage = styled.img`
+  width: 140px;
+  height: 120px;
+  object-fit: contain;
 `;
 
 const SidebarContainer = styled.div<{ collapsed: boolean }>`
@@ -44,7 +67,6 @@ const SidebarContent = styled.div<{ collapsed: boolean }>`
   transition-delay: ${props => props.collapsed ? '0s' : '0.1s'};
   display: flex;
   flex-direction: column;
-  gap: 12px;
   width: 100%;
   flex: 1;
   overflow-y: auto;
@@ -67,6 +89,14 @@ const SidebarContent = styled.div<{ collapsed: boolean }>`
   &::-webkit-scrollbar-thumb:hover {
     background: #ccc;
   }
+`;
+
+const ActionButtonsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
 `;
 
 const MainContent = styled.div`
@@ -515,6 +545,19 @@ export const App: React.FC = () => {
         <SidebarContent collapsed={isSidebarCollapsed}>
           {!isSidebarCollapsed && (
             <>
+              <LogoArea>
+                <LogoText>UniTime</LogoText>
+                <LogoImage 
+                  src={calendarIcon}
+                  alt="UniTime Calendar"
+                  onError={(e) => {
+                    console.error('Error loading image:', e);
+                    const img = e.target as HTMLImageElement;
+                    console.log('Attempted to load:', img.src);
+                  }}
+                />
+              </LogoArea>
+              
               <div style={{ position: 'relative', width: '100%' }}>
                 <SelectNative
                   id="template-select"
@@ -552,86 +595,88 @@ export const App: React.FC = () => {
                 )}
               </div>
 
-              <ActionButton 
-                variant="primary"
-                onClick={() => startEditingTemplate(currentTemplateId)}
-              >
-                <MdEdit /> Переименовать
-              </ActionButton>
-              
-              <ActionButton 
-                variant="success"
-                onClick={createNewTemplate}
-              >
-                <MdAdd /> Новый шаблон
-              </ActionButton>
-              
-              {templates.length > 1 && (
-                <ActionButton
-                  variant="danger"
-                  onClick={deleteCurrentTemplate}
+              <ActionButtonsContainer>
+                <ActionButton 
+                  variant="primary"
+                  onClick={() => startEditingTemplate(currentTemplateId)}
                 >
-                  <MdDelete /> Удалить шаблон
+                  <MdEdit /> Переименовать
                 </ActionButton>
-              )}
+                
+                <ActionButton 
+                  variant="success"
+                  onClick={createNewTemplate}
+                >
+                  <MdAdd /> Новый шаблон
+                </ActionButton>
+                
+                {templates.length > 1 && (
+                  <ActionButton
+                    variant="danger"
+                    onClick={deleteCurrentTemplate}
+                  >
+                    <MdDelete /> Удалить шаблон
+                  </ActionButton>
+                )}
 
-              <Button
-                onClick={() => {
-                  const currentTemplate = templates.find(t => t.id === currentTemplateId);
-                  if (currentTemplate?.courses.length) {
-                    handleExportTemplate(currentTemplate);
-                  } else {
-                    alert('Невозможно экспортировать пустой шаблон');
-                  }
-                }}
-                title="Экспорт текущего шаблона"
-                disabled={!currentCourses.length}
-                style={{ width: '100%' }}
-              >
-                📤 Экспорт
-              </Button>
+                <Button
+                  onClick={() => {
+                    const currentTemplate = templates.find(t => t.id === currentTemplateId);
+                    if (currentTemplate?.courses.length) {
+                      handleExportTemplate(currentTemplate);
+                    } else {
+                      alert('Невозможно экспортировать пустой шаблон');
+                    }
+                  }}
+                  title="Экспорт текущего шаблона"
+                  disabled={!currentCourses.length}
+                  style={{ width: '100%' }}
+                >
+                  📤 Экспорт
+                </Button>
 
-              <ImportDropZone
-                $isDragOver={dragOver}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(true);
-                }}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setDragOver(false);
-                }}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById('import-file')?.click()}
-              >
-                <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
-              </ImportDropZone>
-              
-              <input
-                id="import-file"
-                type="file"
-                accept="application/json"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      if (ev.target?.result) {
-                        handleImportTemplate(ev.target.result as string);
-                      }
-                    };
-                    reader.readAsText(file);
-                  }
-                }}
-              />
+                <ImportDropZone
+                  $isDragOver={dragOver}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOver(true);
+                  }}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOver(false);
+                  }}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('import-file')?.click()}
+                >
+                  <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
+                </ImportDropZone>
+                
+                <input
+                  id="import-file"
+                  type="file"
+                  accept="application/json"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        if (ev.target?.result) {
+                          handleImportTemplate(ev.target.result as string);
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+              </ActionButtonsContainer>
             </>
           )}
         </SidebarContent>
