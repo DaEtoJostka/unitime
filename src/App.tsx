@@ -25,7 +25,7 @@ const LogoArea = styled.div`
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  gap: 16px;
+  gap: 0px;
 `;
 
 const LogoText = styled.div`
@@ -36,7 +36,7 @@ const LogoText = styled.div`
 
 const LogoImage = styled.img`
   width: 140px;
-  height: 120px;
+  height: 140px;
   object-fit: contain;
 `;
 
@@ -546,7 +546,6 @@ export const App: React.FC = () => {
           {!isSidebarCollapsed && (
             <>
               <LogoArea>
-                <LogoText>UniTime</LogoText>
                 <LogoImage 
                   src={calendarIcon}
                   alt="UniTime Calendar"
@@ -556,6 +555,7 @@ export const App: React.FC = () => {
                     console.log('Attempted to load:', img.src);
                   }}
                 />
+                <LogoText>UniTime</LogoText>
               </LogoArea>
               
               <div style={{ position: 'relative', width: '100%' }}>
