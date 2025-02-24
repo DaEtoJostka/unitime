@@ -80,10 +80,28 @@ const AuthorLink = styled.a`
   }
 `;
 
-const LogoImage = styled.img`
+const LogoImage = styled.img<{ $isSpinning?: boolean }>`
   width: 140px;
   height: 140px;
   object-fit: contain;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1) drop-shadow(0 0 8px rgba(33, 150, 243, 0.4));
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  animation: ${props => props.$isSpinning ? 'spin 0.7s ease-in-out' : 'none'};
 `;
 
 const SidebarContainer = styled.div<{ collapsed: boolean }>`
@@ -372,6 +390,7 @@ export const App: React.FC = () => {
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
 
@@ -585,6 +604,13 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (!isSpinning) {
+      setIsSpinning(true);
+      setTimeout(() => setIsSpinning(false), 700); // Reset after animation completes
+    }
+  };
+
   return (
     <AppContainer>
       <SidebarContainer collapsed={isSidebarCollapsed}>
@@ -595,6 +621,8 @@ export const App: React.FC = () => {
                 <LogoImage 
                   src={calendarIcon}
                   alt="UniTime Calendar"
+                  $isSpinning={isSpinning}
+                  onClick={handleLogoClick}
                   onError={(e) => {
                     console.error('Error loading image:', e);
                     const img = e.target as HTMLImageElement;
