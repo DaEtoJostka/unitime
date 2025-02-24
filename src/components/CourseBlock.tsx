@@ -1,7 +1,13 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { Course } from '../types/course';
+
+const GlobalStyle = createGlobalStyle<{ isDragging: boolean }>`
+  * {
+    cursor: ${props => props.isDragging ? 'grabbing !important' : 'inherit'};
+  }
+`;
 
 const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
   padding: 8px;
@@ -18,11 +24,13 @@ const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
     props.type === 'exam' ? '#ff9800' :
     '#ab47bc'};
   border-radius: 4px;
-  cursor: move;
+  cursor: grab;
   transition: all 0.2s;
   font-size: 0.9em;
   z-index: 1;
   opacity: ${props => props.isDragging ? 0.5 : 1};
+  transform: ${props => props.isDragging ? 'scale(0.95)' : 'none'};
+  user-select: none;
 
   &:hover {
     transform: scale(1.02);
@@ -57,17 +65,20 @@ export const CourseBlock: React.FC<CourseBlockProps> = ({ course, onEdit }) => {
   }));
 
   return (
-    <CourseWrapper
-      ref={drag}
-      type={course.type}
-      isDragging={isDragging}
-      onClick={() => onEdit?.(course)}
-    >
-      <CourseTitle>{course.title}</CourseTitle>
-      <CourseInfo>{course.location}</CourseInfo>
-      {course.professor && (
-        <CourseInfo>{course.professor}</CourseInfo>
-      )}
-    </CourseWrapper>
+    <>
+      <GlobalStyle isDragging={isDragging} />
+      <CourseWrapper
+        ref={drag}
+        type={course.type}
+        isDragging={isDragging}
+        onClick={() => onEdit?.(course)}
+      >
+        <CourseTitle>{course.title}</CourseTitle>
+        <CourseInfo>{course.location}</CourseInfo>
+        {course.professor && (
+          <CourseInfo>{course.professor}</CourseInfo>
+        )}
+      </CourseWrapper>
+    </>
   );
 };
