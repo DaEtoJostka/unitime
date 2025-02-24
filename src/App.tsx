@@ -19,7 +19,7 @@ const AppContainer = styled.div`
 `;
 
 const LogoArea = styled.div`
-  height: 160px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -31,7 +31,53 @@ const LogoArea = styled.div`
 const LogoText = styled.div`
   font-size: 32px;
   font-weight: bold;
+  background: linear-gradient(
+    to right,
+    #2196f3,
+    #00bcd4,
+    #2196f3
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  @keyframes flow {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    animation: flow 3s linear infinite;
+    text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+  }
+`;
+
+const LoveText = styled.div`
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+  text-align: center;
+`;
+
+const AuthorLink = styled.a`
+  font-size: 12px;
   color: #2196f3;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 2px;
+
+  &:hover {
+    color: #0d47a1;
+    text-decoration: underline;
+  }
 `;
 
 const LogoImage = styled.img`
@@ -556,6 +602,15 @@ export const App: React.FC = () => {
                   }}
                 />
                 <LogoText>UniTime</LogoText>
+                <LoveText>Сделано с любовью ❤️</LoveText>
+                <AuthorLink 
+                  href="https://github.com/DaEtoJostka"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ cursor: 'pointer' }}
+                >
+                  by Karlov Ivan
+                </AuthorLink>
               </LogoArea>
               
               <div style={{ position: 'relative', width: '100%' }}>
