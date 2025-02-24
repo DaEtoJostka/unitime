@@ -18,12 +18,55 @@ const AppContainer = styled.div`
 `;
 
 const SidebarContainer = styled.div<{ collapsed: boolean }>`
-  width: ${props => props.collapsed ? '40px' : '280px'};
+  width: ${props => props.collapsed ? '48px' : '280px'};
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: width 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: ${props => props.collapsed ? '12px 6px' : '12px'};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  height: calc(100vh - 40px);
+
+  &:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  }
+`;
+
+const SidebarContent = styled.div<{ collapsed: boolean }>`
+  opacity: ${props => props.collapsed ? 0 : 1};
+  transform: ${props => props.collapsed ? 'translateX(-20px)' : 'translateX(0)'};
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: ${props => props.collapsed ? '0s' : '0.1s'};
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: ${props => props.collapsed ? '0' : '8px'};
+
+  /* Customize scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+  }
 `;
 
 const MainContent = styled.div`
@@ -52,6 +95,7 @@ const ModalContent = styled.div`
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 `;
 
 const ActionButton = styled.button<{ variant: 'primary' | 'success' | 'danger' }>`
@@ -109,6 +153,7 @@ const SaveNotification = styled.div`
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
+  z-index: 2000;
 
   @keyframes slideIn {
     from {
@@ -172,7 +217,7 @@ const ImportDropZone = styled.div<{ $isDragOver: boolean }>`
   }
 `;
 
-const SidebarToggleButton = styled.button`
+const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   background: #f8f9fa;
   border: 1px solid #2196f3;
   border-radius: 8px;
@@ -181,9 +226,28 @@ const SidebarToggleButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 8px;
   margin-top: auto;
+  width: ${props => props.collapsed ? '36px' : '100%'};
+  height: 36px;
+  margin-left: ${props => props.collapsed ? 'auto' : '0'};
+  margin-right: ${props => props.collapsed ? 'auto' : '0'};
+  
+  &:hover {
+    background: #e3f2fd;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: ${props => props.collapsed ? 'rotate(0deg)' : 'rotate(180deg)'};
+    color: #2196f3;
+  }
 `;
 
 export const App: React.FC = () => {
@@ -448,127 +512,129 @@ export const App: React.FC = () => {
   return (
     <AppContainer>
       <SidebarContainer collapsed={isSidebarCollapsed}>
-        {!isSidebarCollapsed && (
-          <>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <SelectNative
-                id="template-select"
-                value={currentTemplateId}
-                onChange={handleTemplateChange}
-                style={{ fontWeight: 600 }}
-              >
-                {templates.map(template => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </SelectNative>
-              
-              {editingTemplateId === currentTemplateId && (
-                <input
-                  value={editedTemplateName}
-                  onChange={(e) => setEditedTemplateName(e.target.value)}
-                  onBlur={saveTemplateName}
-                  onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    padding: '8px 12px',
-                    border: '2px solid #2196f3',
-                    borderRadius: '8px',
-                    boxSizing: 'border-box',
-                    fontWeight: 600
-                  }}
-                  autoFocus
-                />
-              )}
-            </div>
+        <SidebarContent collapsed={isSidebarCollapsed}>
+          {!isSidebarCollapsed && (
+            <>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <SelectNative
+                  id="template-select"
+                  value={currentTemplateId}
+                  onChange={handleTemplateChange}
+                  style={{ fontWeight: 600 }}
+                >
+                  {templates.map(template => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </SelectNative>
+                
+                {editingTemplateId === currentTemplateId && (
+                  <input
+                    value={editedTemplateName}
+                    onChange={(e) => setEditedTemplateName(e.target.value)}
+                    onBlur={saveTemplateName}
+                    onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      padding: '8px 12px',
+                      border: '2px solid #2196f3',
+                      borderRadius: '8px',
+                      boxSizing: 'border-box',
+                      fontWeight: 600
+                    }}
+                    autoFocus
+                  />
+                )}
+              </div>
 
-            <ActionButton 
-              variant="primary"
-              onClick={() => startEditingTemplate(currentTemplateId)}
-            >
-              <MdEdit /> Переименовать
-            </ActionButton>
-            
-            <ActionButton 
-              variant="success"
-              onClick={createNewTemplate}
-            >
-              <MdAdd /> Новый шаблон
-            </ActionButton>
-            
-            {templates.length > 1 && (
-              <ActionButton
-                variant="danger"
-                onClick={deleteCurrentTemplate}
+              <ActionButton 
+                variant="primary"
+                onClick={() => startEditingTemplate(currentTemplateId)}
               >
-                <MdDelete /> Удалить шаблон
+                <MdEdit /> Переименовать
               </ActionButton>
-            )}
+              
+              <ActionButton 
+                variant="success"
+                onClick={createNewTemplate}
+              >
+                <MdAdd /> Новый шаблон
+              </ActionButton>
+              
+              {templates.length > 1 && (
+                <ActionButton
+                  variant="danger"
+                  onClick={deleteCurrentTemplate}
+                >
+                  <MdDelete /> Удалить шаблон
+                </ActionButton>
+              )}
 
-            <Button
-              onClick={() => {
-                const currentTemplate = templates.find(t => t.id === currentTemplateId);
-                if (currentTemplate?.courses.length) {
-                  handleExportTemplate(currentTemplate);
-                } else {
-                  alert('Невозможно экспортировать пустой шаблон');
-                }
-              }}
-              title="Экспорт текущего шаблона"
-              disabled={!currentCourses.length}
-              style={{ width: '100%' }}
-            >
-              📤 Экспорт
-            </Button>
+              <Button
+                onClick={() => {
+                  const currentTemplate = templates.find(t => t.id === currentTemplateId);
+                  if (currentTemplate?.courses.length) {
+                    handleExportTemplate(currentTemplate);
+                  } else {
+                    alert('Невозможно экспортировать пустой шаблон');
+                  }
+                }}
+                title="Экспорт текущего шаблона"
+                disabled={!currentCourses.length}
+                style={{ width: '100%' }}
+              >
+                📤 Экспорт
+              </Button>
 
-            <ImportDropZone
-              $isDragOver={dragOver}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setDragOver(true);
-              }}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setDragOver(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setDragOver(false);
-              }}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById('import-file')?.click()}
-            >
-              <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
-            </ImportDropZone>
-            
-            <input
-              id="import-file"
-              type="file"
-              accept="application/json"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => {
-                    if (ev.target?.result) {
-                      handleImportTemplate(ev.target.result as string);
-                    }
-                  };
-                  reader.readAsText(file);
-                }
-              }}
-            />
-          </>
-        )}
+              <ImportDropZone
+                $isDragOver={dragOver}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOver(true);
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOver(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOver(false);
+                }}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById('import-file')?.click()}
+              >
+                <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
+              </ImportDropZone>
+              
+              <input
+                id="import-file"
+                type="file"
+                accept="application/json"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      if (ev.target?.result) {
+                        handleImportTemplate(ev.target.result as string);
+                      }
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+              />
+            </>
+          )}
+        </SidebarContent>
         <SidebarToggleButton onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
           {isSidebarCollapsed ? <MdChevronRight /> : <MdChevronLeft />}
         </SidebarToggleButton>

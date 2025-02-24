@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { CourseBlock } from './CourseBlock';
 
 const TimetableContainer = styled.div`
-  overflow-x: auto;
+  overflow: auto;
   padding: 0;
   background: #fff;
   border-radius: 8px;
@@ -17,6 +17,8 @@ const TimetableContainer = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 40px);
+  min-height: 600px;
 
   @media (min-width: 768px) {
     margin: 0;
@@ -25,19 +27,19 @@ const TimetableContainer = styled.div`
 
 const Header = styled.div`
   display: grid;
-  grid-template-columns: 100px repeat(6, minmax(120px, 1fr));
+  grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
-  min-width: 800px;
   border-right: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
   z-index: 10;
+  min-width: fit-content;
 `;
 
 const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: clamp(14px, 1.5vw, 16px);
   font-weight: 600;
   color: ${props => props.$isCurrent ? '#2196f3' : '#2d3748'};
   background: ${props => props.$isCurrent ? '#e3f2fd' : '#fff'};
@@ -48,6 +50,7 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 120px;
 
   &:last-child {
     border-right: none;
@@ -70,14 +73,15 @@ const RowsWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 `;
 
 const TimeSlotRow = styled.div`
   flex: 1;
   display: grid;
-  grid-template-columns: 100px repeat(6, minmax(120px, 1fr));
-  min-width: 800px;
+  grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
   border-bottom: 1px solid #e0e0e0;
+  min-width: fit-content;
 
   &:last-child {
     border-bottom: 1px solid #e0e0e0;
@@ -107,7 +111,7 @@ const CurrentTimeIndicator = styled.div`
 const TimeCell = styled.div<{ $isCurrent?: boolean }>`
   position: relative;
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: clamp(12px, 1.2vw, 13px);
   color: #4a5568;
   background: #fff;
   border-right: 1px solid #e0e0e0;
@@ -117,18 +121,19 @@ const TimeCell = styled.div<{ $isCurrent?: boolean }>`
   justify-content: flex-start;
   text-align: center;
   height: 100%;
+  min-width: 80px;
 
   .start-time {
     display: block;
     font-weight: 600;
     color: ${props => props.$isCurrent ? '#2196f3' : '#2d3748'};
     margin-bottom: 2px;
-    font-size: 16px;
+    font-size: clamp(14px, 1.4vw, 16px);
   }
 
   .end-time {
     display: block;
-    font-size: 12px;
+    font-size: clamp(11px, 1.1vw, 12px);
     color: ${props => props.$isCurrent ? '#2196f3' : '#718096'};
   }
 `;
@@ -143,6 +148,7 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean }>`
   position: relative;
   transition: padding-bottom 0.2s ease-in-out;
   border-right: 1px solid #e0e0e0;
+  min-width: 120px;
 
   &:hover {
     padding-bottom: 40px;

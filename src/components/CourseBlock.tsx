@@ -28,13 +28,13 @@ const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
   transition: all 0.2s;
   font-size: 0.9em;
   z-index: 1;
-  opacity: ${props => props.isDragging ? 0.5 : 1};
-  transform: ${props => props.isDragging ? 'scale(0.95)' : 'none'};
+  opacity: ${props => props.isDragging ? 0.4 : 1};
+  transform: ${props => props.isDragging ? 'none' : 'none'};
   user-select: none;
 
   &:hover {
-    transform: scale(1.02);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: ${props => props.isDragging ? 'none' : 'scale(1.02)'};
+    box-shadow: ${props => props.isDragging ? 'none' : '0 2px 5px rgba(0,0,0,0.1)'};
   }
 `;
 
