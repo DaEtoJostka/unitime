@@ -15,8 +15,8 @@ const TimetableContainer = styled.div`
   margin: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
   height: calc(100vh - 40px);
   min-height: 600px;
 
@@ -30,14 +30,11 @@ const Header = styled.div`
   grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
   min-width: fit-content;
 `;
 
 const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
+  box-sizing: border-box;
   padding: 12px 16px;
   font-size: clamp(14px, 1.5vw, 16px);
   font-weight: 600;
@@ -74,20 +71,18 @@ const RowsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   overflow: auto;
+  height: 100%;
 `;
 
 const TimeSlotRow = styled.div`
-  flex: 1;
   display: grid;
   grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
   border-bottom: 1px solid #e0e0e0;
   min-width: fit-content;
 
   &:last-child {
-    border-bottom: 1px solid #e0e0e0;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    margin-bottom: -1px;
+    border-bottom: none;
+    margin-bottom: 0;
   }
 `;
 
@@ -109,6 +104,7 @@ const CurrentTimeIndicator = styled.div`
 `;
 
 const TimeCell = styled.div<{ $isCurrent?: boolean }>`
+  box-sizing: border-box;
   position: relative;
   padding: 12px 16px;
   font-size: clamp(12px, 1.2vw, 13px);
@@ -139,6 +135,7 @@ const TimeCell = styled.div<{ $isCurrent?: boolean }>`
 `;
 
 const CoursesContainer = styled.div<{ $isCurrent?: boolean }>`
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -149,6 +146,11 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean }>`
   transition: padding-bottom 0.2s ease-in-out;
   border-right: 1px solid #e0e0e0;
   min-width: 120px;
+  height: 100%;
+
+  &:last-child {
+    border-right: none;
+  }
 
   &:hover {
     padding-bottom: 40px;
@@ -337,7 +339,7 @@ export const Timetable: React.FC<TimetableProps> = ({
                     fontSize: 12, 
                     color: '#2196f3',
                     whiteSpace: 'nowrap',
-                    marginLeft: '-25px'
+                    marginLeft: '-15px'
                   }}>• Сегодня</span>
                 )}
               </div>
