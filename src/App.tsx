@@ -323,7 +323,7 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 8px;
   margin-top: auto;
-  width: ${props => props.collapsed ? '36px' : '100%'};
+  width: ${props => props.collapsed ? '30px' : '100%'};
   height: 36px;
   margin-left: ${props => props.collapsed ? 'auto' : '0'};
   margin-right: ${props => props.collapsed ? 'auto' : '0'};
