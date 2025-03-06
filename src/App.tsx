@@ -331,7 +331,8 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   line-height: 1;
   width: ${props => props.collapsed ? '36px' : '100%'};
-  height: ${props => props.collapsed ? '36px' : 'auto'};
+  height: ${props => props.collapsed ? 'calc(100vh - 40px - 24px)' : 'auto'};
+  box-sizing: border-box;
 
   &:hover {
     background: #e3f2fd;
