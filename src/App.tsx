@@ -110,7 +110,7 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
   background: white;
@@ -127,7 +127,7 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
 const SidebarContent = styled.div<{ collapsed: boolean }>`
   opacity: ${props => props.collapsed ? 0 : 1};
   transform: ${props => props.collapsed ? 'translateX(-20px)' : 'translateX(0)'};
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transition-delay: ${props => props.collapsed ? '0s' : '0.1s'};
   display: flex;
   flex-direction: column;
@@ -135,6 +135,7 @@ const SidebarContent = styled.div<{ collapsed: boolean }>`
   flex: 1;
   overflow-y: auto;
   padding-right: ${props => props.collapsed ? '0' : '8px'};
+  height: 100%;
 
   /* Customize scrollbar */
   &::-webkit-scrollbar {
@@ -161,6 +162,7 @@ const ActionButtonsContainer = styled.div`
   gap: 12px;
   margin-top: auto;
   padding-top: 20px;
+  width: 100%;
 `;
 
 const MainContent = styled.div`
@@ -312,32 +314,38 @@ const ImportDropZone = styled.div<{ $isDragOver: boolean }>`
 `;
 
 const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
-  background: #f8f9fa;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  padding: ${props => props.collapsed ? '8px' : '10px 16px'};
+  min-height: 36px;
+  background: #f8f9fa;
+  color: #2196f3;
+  border: 1px solid #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 8px;
-  margin-top: auto;
-  width: ${props => props.collapsed ? '30px' : '100%'};
-  height: 36px;
-  margin-left: ${props => props.collapsed ? 'auto' : '0'};
-  margin-right: ${props => props.collapsed ? 'auto' : '0'};
-  
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  line-height: 1;
+  width: ${props => props.collapsed ? '36px' : '100%'};
+  height: ${props => props.collapsed ? '36px' : 'auto'};
+
   &:hover {
     background: #e3f2fd;
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   svg {
+    font-size: 18px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform: ${props => props.collapsed ? 'rotate(0deg)' : 'rotate(180deg)'};
     color: #2196f3;
@@ -759,13 +767,26 @@ export const App: React.FC = () => {
                     }
                   }}
                 />
+
+                <SidebarToggleButton 
+                  collapsed={false}
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                >
+                  <MdChevronLeft /> Свернуть панель
+                </SidebarToggleButton>
               </ActionButtonsContainer>
             </>
           )}
         </SidebarContent>
-        <SidebarToggleButton onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
-          {isSidebarCollapsed ? <MdChevronRight /> : <MdChevronLeft />}
-        </SidebarToggleButton>
+        {isSidebarCollapsed && (
+          <SidebarToggleButton 
+            collapsed={true} 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{ marginTop: 'auto' }}
+          >
+            <MdChevronRight />
+          </SidebarToggleButton>
+        )}
       </SidebarContainer>
       
       <MainContent>
