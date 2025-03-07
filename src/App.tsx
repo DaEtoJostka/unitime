@@ -403,7 +403,15 @@ export const App: React.FC = () => {
   const [editedTemplateName, setEditedTemplateName] = useState('');
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const savedData = localStorage.getItem('scheduleData');
+      return savedData ? JSON.parse(savedData).isSidebarCollapsed || false : false;
+    } catch (error) {
+      console.error('Ошибка загрузки состояния боковой панели:', error);
+      return false;
+    }
+  });
   const [isWaveAnimating, setIsWaveAnimating] = useState(false);
 
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
@@ -415,13 +423,43 @@ export const App: React.FC = () => {
     };
 
     try {
-      localStorage.setItem('scheduleData', JSON.stringify(saveData));
+      // Get existing data to preserve sidebar state
+      const existingData = localStorage.getItem('scheduleData');
+      const parsedData = existingData ? JSON.parse(existingData) : {};
+      
+      // Create updated data with template changes but preserving sidebar state
+      const updatedData = {
+        ...parsedData,
+        templates,
+        currentTemplateId
+      };
+      
+      localStorage.setItem('scheduleData', JSON.stringify(updatedData));
       setShowSaveNotification(true);
     } catch (error) {
       console.error('Ошибка сохранения в localStorage:', error);
       alert('Не удалось сохранить данные. Возможно, недостаточно места в хранилище.');
     }
   }, [templates, currentTemplateId]);
+
+  // Separate useEffect for saving sidebar state without showing notification
+  useEffect(() => {
+    try {
+      // Get existing data
+      const existingData = localStorage.getItem('scheduleData');
+      const parsedData = existingData ? JSON.parse(existingData) : {};
+      
+      // Update only the sidebar state without showing notification
+      const updatedData = {
+        ...parsedData,
+        isSidebarCollapsed
+      };
+      
+      localStorage.setItem('scheduleData', JSON.stringify(updatedData));
+    } catch (error) {
+      console.error('Ошибка сохранения состояния боковой панели:', error);
+    }
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     if (showSaveNotification) {
