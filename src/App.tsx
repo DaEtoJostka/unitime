@@ -57,6 +57,7 @@ const LogoText = styled.div`
   cursor: pointer;
   margin-bottom: 4px;
   animation: colorFlow 60s linear infinite;
+  display: inline-block;
 
   @keyframes colorFlow {
     0% {
@@ -67,11 +68,30 @@ const LogoText = styled.div`
     }
   }
 
+  @keyframes waveAnimation {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.4);
+    }
+  }
+
   &:hover {
-    transform: scale(1.1);
     animation: colorFlow 60s linear infinite;
     text-shadow: 0 0 10px rgba(106, 13, 173, 0.3);
   }
+`;
+
+const LogoLetter = styled.span<{ index: number; isAnimating: boolean }>`
+  display: inline-block;
+  animation: ${props => props.isAnimating ? 'waveAnimation 0.6s ease' : 'none'};
+  animation-delay: ${props => props.isAnimating ? `${props.index * 0.07}s` : '0s'};
+  animation-fill-mode: forwards;
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 `;
 
 const AuthorLink = styled.a`
@@ -384,6 +404,7 @@ export const App: React.FC = () => {
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isWaveAnimating, setIsWaveAnimating] = useState(false);
 
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
 
@@ -597,6 +618,13 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (!isWaveAnimating) {
+      setIsWaveAnimating(true);
+      setTimeout(() => setIsWaveAnimating(false), 1200);
+    }
+  };
+
   return (
     <AppContainer>
       <SidebarContainer collapsed={isSidebarCollapsed}>
@@ -604,7 +632,15 @@ export const App: React.FC = () => {
           {!isSidebarCollapsed && (
             <>
               <LogoArea>
-                <LogoText>UniTime</LogoText>
+                <LogoText onClick={handleLogoClick}>
+                  <LogoLetter index={0} isAnimating={isWaveAnimating}>U</LogoLetter>
+                  <LogoLetter index={1} isAnimating={isWaveAnimating}>n</LogoLetter>
+                  <LogoLetter index={2} isAnimating={isWaveAnimating}>i</LogoLetter>
+                  <LogoLetter index={3} isAnimating={isWaveAnimating}>T</LogoLetter>
+                  <LogoLetter index={4} isAnimating={isWaveAnimating}>i</LogoLetter>
+                  <LogoLetter index={5} isAnimating={isWaveAnimating}>m</LogoLetter>
+                  <LogoLetter index={6} isAnimating={isWaveAnimating}>e</LogoLetter>
+                </LogoText>
                 <AuthorLink 
                   href="https://github.com/DaEtoJostka"
                   target="_blank"
