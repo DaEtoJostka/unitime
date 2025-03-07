@@ -59,16 +59,17 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
   flex-direction: column;
   gap: 4px;
   min-width: 120px;
+  position: relative;
 
   ${props => props.$isFirstDay && `
     &::before {
       content: '';
       position: absolute;
       top: 0;
-      left: -1px;
+      left: 0;
       bottom: 0;
       width: 1px;
-      background-color: #e8e8e8;
+      background-color: #e0e0e0;
     }
   `}
 
@@ -133,7 +134,7 @@ const TimeCell = styled.div<{ $isCurrent?: boolean }>`
   font-size: clamp(12px, 1.2vw, 13px);
   color: #4a5568;
   background: #fff;
-  border-right: 1px solid #e0e0e0;
+  border-right: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -176,10 +177,11 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolea
       content: '';
       position: absolute;
       top: 0;
-      left: -1px;
+      left: 0px;
       bottom: 0;
       width: 1px;
-      background-color: #e8e8e8;
+      background-color: #e0e0e0;
+      z-index: 1;
     }
   `}
 
@@ -231,9 +233,10 @@ interface DropTargetProps {
   children: React.ReactNode;
   onMoveCourse: (course: Course, newTimeSlot: TimeSlot, newDayIndex: number) => void;
   $isCurrent?: boolean;
+  $isFirstDay?: boolean;
 }
 
-const DropTarget: React.FC<DropTargetProps> = ({ timeSlot, dayIndex, children, onMoveCourse, $isCurrent }) => {
+const DropTarget: React.FC<DropTargetProps> = ({ timeSlot, dayIndex, children, onMoveCourse, $isCurrent, $isFirstDay }) => {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'COURSE',
     drop: (item: Course) => {
@@ -249,7 +252,7 @@ const DropTarget: React.FC<DropTargetProps> = ({ timeSlot, dayIndex, children, o
       ref={drop} 
       className={isOver ? 'can-drop' : ''}
       $isCurrent={$isCurrent}
-      $isFirstDay={dayIndex === 0}
+      $isFirstDay={$isFirstDay}
     >
       {children}
     </CoursesContainer>
@@ -404,6 +407,7 @@ export const Timetable: React.FC<TimetableProps> = ({
                         dayIndex={dayIndex}
                         onMoveCourse={onMoveCourse!}
                         $isCurrent={currentDayIndex === dayIndex}
+                        $isFirstDay={dayIndex === 0}
                       >
                         {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
                         {slotCourses.map(course => (

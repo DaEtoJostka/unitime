@@ -3,6 +3,14 @@
   position: relative;
   transform: none !important; /* Override dnd-kit transforms */
   transition: none !important; /* Disable default transitions */
+  /* Text truncation styles for multiple lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 /* Add dropzone styling indicators */

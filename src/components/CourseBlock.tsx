@@ -43,11 +43,25 @@ const CourseTitle = styled.div`
   font-weight: bold;
   margin-bottom: 4px;
   color: #333;
+  /* Display text on two lines with ellipsis */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3;
+  max-height: 2.6em;
 `;
 
 const CourseInfo = styled.div`
   font-size: 0.85em;
   color: #666;
+  /* Allow one line with ellipsis */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
 `;
 
 interface CourseBlockProps {
