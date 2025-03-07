@@ -417,11 +417,6 @@ export const App: React.FC = () => {
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
 
   useEffect(() => {
-    const saveData = {
-      templates,
-      currentTemplateId
-    };
-
     try {
       // Get existing data to preserve sidebar state
       const existingData = localStorage.getItem('scheduleData');
