@@ -7,7 +7,8 @@ import styled from 'styled-components';
 import { CourseBlock } from './CourseBlock';
 
 const TimetableContainer = styled.div`
-  overflow: auto;
+  position: relative;
+  overflow: hidden;
   padding: 0;
   background: #fff;
   border-radius: 8px;
@@ -15,8 +16,8 @@ const TimetableContainer = styled.div`
   margin: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   flex: 1;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   height: calc(100vh - 40px);
   min-height: 600px;
 
@@ -25,12 +26,23 @@ const TimetableContainer = styled.div`
   }
 `;
 
+const TableWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+`;
+
 const Header = styled.div`
   display: grid;
-  grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
+  grid-template-columns: minmax(80px, 100px) repeat(6, minmax(120px, 1fr));
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
   min-width: fit-content;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 `;
 
 const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
@@ -43,7 +55,6 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
   border-right: 1px solid #e0e0e0;
   line-height: 1.4;
   text-align: left;
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -82,13 +93,13 @@ const RowsWrapper = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: visible;
   height: 100%;
 `;
 
 const TimeSlotRow = styled.div`
   display: grid;
-  grid-template-columns: minmax(80px, 100px) repeat(6, 1fr);
+  grid-template-columns: minmax(80px, 100px) repeat(6, minmax(120px, 1fr));
   border-bottom: 1px solid #e0e0e0;
   min-width: fit-content;
 
@@ -335,88 +346,90 @@ export const Timetable: React.FC<TimetableProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <TimetableContainer>
-        <Header>
-          <HeaderCell></HeaderCell>
-          {days.map((day, index) => (
-            <HeaderCell 
-              key={day} 
-              $isCurrent={currentDayIndex === index}
-              $isFirstDay={index === 0}
-            >
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                <div>
-                  {day}
-                  {weekDates[index] && (
-                    <div style={{
-                      fontSize: '12px',
-                      color: currentDayIndex === index ? '#2196f3' : '#718096',
-                      fontWeight: 400,
-                      marginTop: '2px'
-                    }}>
-                      {weekDates[index].toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'short'
-                      }).replace('.', '')}
-                    </div>
+        <TableWrapper>
+          <Header>
+            <HeaderCell></HeaderCell>
+            {days.map((day, index) => (
+              <HeaderCell 
+                key={day} 
+                $isCurrent={currentDayIndex === index}
+                $isFirstDay={index === 0}
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <div>
+                    {day}
+                    {weekDates[index] && (
+                      <div style={{
+                        fontSize: '12px',
+                        color: currentDayIndex === index ? '#2196f3' : '#718096',
+                        fontWeight: 400,
+                        marginTop: '2px'
+                      }}>
+                        {weekDates[index].toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'short'
+                        }).replace('.', '')}
+                      </div>
+                    )}
+                  </div>
+                  {currentDayIndex === index && (
+                    <span style={{ 
+                      fontSize: 12, 
+                      color: '#2196f3',
+                      whiteSpace: 'nowrap',
+                      marginLeft: '-15px'
+                    }}>• Сегодня</span>
                   )}
                 </div>
-                {currentDayIndex === index && (
-                  <span style={{ 
-                    fontSize: 12, 
-                    color: '#2196f3',
-                    whiteSpace: 'nowrap',
-                    marginLeft: '-15px'
-                  }}>• Сегодня</span>
-                )}
-              </div>
-            </HeaderCell>
-          ))}
-        </Header>
-        <RowsWrapper>
-          {DEFAULT_TIME_SLOTS.map((timeSlot) => {
-            const isCurrentTime = isCurrentTimeSlot(timeSlot);
-            return (
-              <TimeSlotRow key={timeSlot.id}>
-                <TimeCell $isCurrent={isCurrentTime}>
-                  <span className="start-time">{timeSlot.startTime}</span>
-                  <span className="end-time">{timeSlot.endTime}</span>
-                </TimeCell>
-                {days.map((_, dayIndex) => {
-                  const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
-                  const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
-                  
-                  return (
-                    <DropTarget
-                      key={dayIndex}
-                      timeSlot={timeSlot}
-                      dayIndex={dayIndex}
-                      onMoveCourse={onMoveCourse!}
-                      $isCurrent={currentDayIndex === dayIndex}
-                    >
-                      {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
-                      {slotCourses.map(course => (
-                        <CourseBlock
-                          key={course.id}
-                          course={course}
-                          onEdit={onEditCourse}
-                        />
-                      ))}
-                      <AddButton 
-                        className="add-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddCourse?.(timeSlot, dayIndex);
-                        }}
+              </HeaderCell>
+            ))}
+          </Header>
+          <RowsWrapper>
+            {DEFAULT_TIME_SLOTS.map((timeSlot) => {
+              const isCurrentTime = isCurrentTimeSlot(timeSlot);
+              return (
+                <TimeSlotRow key={timeSlot.id}>
+                  <TimeCell $isCurrent={isCurrentTime}>
+                    <span className="start-time">{timeSlot.startTime}</span>
+                    <span className="end-time">{timeSlot.endTime}</span>
+                  </TimeCell>
+                  {days.map((_, dayIndex) => {
+                    const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
+                    const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
+                    
+                    return (
+                      <DropTarget
+                        key={dayIndex}
+                        timeSlot={timeSlot}
+                        dayIndex={dayIndex}
+                        onMoveCourse={onMoveCourse!}
+                        $isCurrent={currentDayIndex === dayIndex}
                       >
-                        + Добавить занятие
-                      </AddButton>
-                    </DropTarget>
-                  );
-                })}
-              </TimeSlotRow>
-            );
-          })}
-        </RowsWrapper>
+                        {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
+                        {slotCourses.map(course => (
+                          <CourseBlock
+                            key={course.id}
+                            course={course}
+                            onEdit={onEditCourse}
+                          />
+                        ))}
+                        <AddButton 
+                          className="add-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddCourse?.(timeSlot, dayIndex);
+                          }}
+                        >
+                          + Добавить занятие
+                        </AddButton>
+                      </DropTarget>
+                    );
+                  })}
+                </TimeSlotRow>
+              );
+            })}
+          </RowsWrapper>
+        </TableWrapper>
       </TimetableContainer>
     </DndProvider>
   );
