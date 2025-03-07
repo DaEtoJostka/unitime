@@ -33,7 +33,7 @@ const Header = styled.div`
   min-width: fit-content;
 `;
 
-const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
+const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
   box-sizing: border-box;
   padding: 12px 16px;
   font-size: clamp(14px, 1.5vw, 16px);
@@ -48,6 +48,18 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean }>`
   flex-direction: column;
   gap: 4px;
   min-width: 120px;
+
+  ${props => props.$isFirstDay && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -1px;
+      bottom: 0;
+      width: 1px;
+      background-color: #e8e8e8;
+    }
+  `}
 
   &:last-child {
     border-right: none;
@@ -134,7 +146,7 @@ const TimeCell = styled.div<{ $isCurrent?: boolean }>`
   }
 `;
 
-const CoursesContainer = styled.div<{ $isCurrent?: boolean }>`
+const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -147,6 +159,18 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean }>`
   border-right: 1px solid #e0e0e0;
   min-width: 120px;
   height: 100%;
+
+  ${props => props.$isFirstDay && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -1px;
+      bottom: 0;
+      width: 1px;
+      background-color: #e8e8e8;
+    }
+  `}
 
   &:last-child {
     border-right: none;
@@ -214,6 +238,7 @@ const DropTarget: React.FC<DropTargetProps> = ({ timeSlot, dayIndex, children, o
       ref={drop} 
       className={isOver ? 'can-drop' : ''}
       $isCurrent={$isCurrent}
+      $isFirstDay={dayIndex === 0}
     >
       {children}
     </CoursesContainer>
@@ -316,6 +341,7 @@ export const Timetable: React.FC<TimetableProps> = ({
             <HeaderCell 
               key={day} 
               $isCurrent={currentDayIndex === index}
+              $isFirstDay={index === 0}
             >
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                 <div>

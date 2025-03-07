@@ -8,7 +8,6 @@ import { ScheduleTemplate } from './types/course';
 import { v4 as uuidv4 } from 'uuid';
 import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
-import calendarIcon from './assets/calendar-icon.png';
 
 const AppContainer = styled.div`
   max-width: 100%;
@@ -23,85 +22,71 @@ const LogoArea = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 20px;
   gap: 0px;
+  padding-top: 20px;
 `;
 
 const LogoText = styled.div`
-  font-size: 32px;
+  font-size: 48px;
   font-weight: bold;
   background: linear-gradient(
     to right,
-    #2196f3,
-    #00bcd4,
-    #2196f3
+    #6a0dad, /* Deep purple */
+    #9c27b0, /* Purple */
+    #e91e63, /* Pink */
+    #f44336, /* Red */
+    #ff9800, /* Orange */
+    #ffc107, /* Amber */
+    #ffeb3b, /* Yellow */
+    #cddc39, /* Yellowish Green */
+    #8bc34a, /* Light green */
+    #4caf50, /* Green */
+    #009688, /* Teal */
+    #03a9f4, /* Light blue */
+    #2196f3, /* Blue */
+    #3f51b5, /* Indigo */
+    #6a0dad  /* Back to deep purple for seamless loop */
   );
-  background-size: 200% auto;
+  background-size: 1000% auto;
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
   transition: all 0.3s ease;
   cursor: pointer;
+  margin-bottom: 4px;
+  animation: colorFlow 60s linear infinite;
 
-  @keyframes flow {
+  @keyframes colorFlow {
     0% {
       background-position: 0% center;
     }
     100% {
-      background-position: 200% center;
+      background-position: 1000% center;
     }
   }
 
   &:hover {
     transform: scale(1.1);
-    animation: flow 3s linear infinite;
-    text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+    animation: colorFlow 60s linear infinite;
+    text-shadow: 0 0 10px rgba(106, 13, 173, 0.3);
   }
-`;
-
-const LoveText = styled.div`
-  font-size: 14px;
-  color: #666;
-  margin-top: 4px;
-  text-align: center;
 `;
 
 const AuthorLink = styled.a`
-  font-size: 12px;
-  color: #2196f3;
+  font-size: 14px;
+  color:rgb(89, 27, 165); /* Dark purple color */
   text-decoration: none;
-  transition: all 0.2s ease;
-  margin-top: 2px;
+  transition: all 0.3s ease;
+  margin-top: 0px;
+  font-weight: 500;
 
   &:hover {
-    color: #0d47a1;
-    text-decoration: underline;
+    transform: scale(1.05);
+    color: #7b1fa2; /* Slightly lighter purple on hover */
+    text-shadow: 0 0 5px rgba(74, 20, 140, 0.3);
   }
-`;
-
-const LogoImage = styled.img<{ $isSpinning?: boolean }>`
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  transition: transform 0.3s ease, filter 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    transform: scale(1.1);
-    filter: brightness(1.1) drop-shadow(0 0 8px rgba(33, 150, 243, 0.4));
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  animation: ${props => props.$isSpinning ? 'spin 0.7s ease-in-out' : 'none'};
 `;
 
 const SidebarContainer = styled.div<{ collapsed: boolean }>`
@@ -399,7 +384,6 @@ export const App: React.FC = () => {
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isSpinning, setIsSpinning] = useState(false);
 
   const currentCourses = templates.find(t => t.id === currentTemplateId)?.courses || [];
 
@@ -613,13 +597,6 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleLogoClick = () => {
-    if (!isSpinning) {
-      setIsSpinning(true);
-      setTimeout(() => setIsSpinning(false), 700); // Reset after animation completes
-    }
-  };
-
   return (
     <AppContainer>
       <SidebarContainer collapsed={isSidebarCollapsed}>
@@ -627,66 +604,53 @@ export const App: React.FC = () => {
           {!isSidebarCollapsed && (
             <>
               <LogoArea>
-                <LogoImage 
-                  src={calendarIcon}
-                  alt="UniTime Calendar"
-                  $isSpinning={isSpinning}
-                  onClick={handleLogoClick}
-                  onError={(e) => {
-                    console.error('Error loading image:', e);
-                    const img = e.target as HTMLImageElement;
-                    console.log('Attempted to load:', img.src);
-                  }}
-                />
                 <LogoText>UniTime</LogoText>
-                <LoveText>Сделано с любовью ❤️</LoveText>
                 <AuthorLink 
                   href="https://github.com/DaEtoJostka"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', marginTop: '0px' }}
                 >
-                  by Karlov Ivan
+                  by 👾 Karlov Ivan
                 </AuthorLink>
+                <div style={{ width: '100%', position: 'relative', marginTop: '30px' }}>
+                  <SelectNative
+                    id="template-select"
+                    value={currentTemplateId}
+                    onChange={handleTemplateChange}
+                    style={{ fontWeight: 600 }}
+                  >
+                    {templates.map(template => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </SelectNative>
+                  
+                  {editingTemplateId === currentTemplateId && (
+                    <input
+                      value={editedTemplateName}
+                      onChange={(e) => setEditedTemplateName(e.target.value)}
+                      onBlur={saveTemplateName}
+                      onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        padding: '8px 12px',
+                        border: '2px solid #2196f3',
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        fontWeight: 600
+                      }}
+                      autoFocus
+                    />
+                  )}
+                </div>
               </LogoArea>
               
-              <div style={{ position: 'relative', width: '100%' }}>
-                <SelectNative
-                  id="template-select"
-                  value={currentTemplateId}
-                  onChange={handleTemplateChange}
-                  style={{ fontWeight: 600 }}
-                >
-                  {templates.map(template => (
-                    <option key={template.id} value={template.id}>
-                      {template.name}
-                    </option>
-                  ))}
-                </SelectNative>
-                
-                {editingTemplateId === currentTemplateId && (
-                  <input
-                    value={editedTemplateName}
-                    onChange={(e) => setEditedTemplateName(e.target.value)}
-                    onBlur={saveTemplateName}
-                    onKeyPress={(e) => e.key === 'Enter' && saveTemplateName()}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      padding: '8px 12px',
-                      border: '2px solid #2196f3',
-                      borderRadius: '8px',
-                      boxSizing: 'border-box',
-                      fontWeight: 600
-                    }}
-                    autoFocus
-                  />
-                )}
-              </div>
-
               <ActionButtonsContainer>
                 <ActionButton 
                   variant="primary"
