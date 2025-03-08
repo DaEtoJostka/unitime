@@ -320,9 +320,9 @@ export const Timetable: React.FC<TimetableProps> = ({
   useEffect(() => {
     const today = new Date().getDay(); 
     // Sunday = 0, Monday = 1, etc.
-    const adjustedIndex = today === 0 ? 6 : today - 1; // Adjust for week starting Monday
-    setCurrentDayIndex(adjustedIndex > 4 ? null : adjustedIndex); // Only highlight Mon-Fri
-  }, []);
+    const adjustedIndex = today === 0 ? null : today - 1; // Adjust for week starting Monday
+    setCurrentDayIndex(adjustedIndex); // Highlight Mon-Sat (0-5)
+  }, [weekDates]); // Recalculate when weekDates changes
 
   const getCoursesForSlot = (timeSlot: TimeSlot, dayIndex: number) => {
     return courses.filter(
