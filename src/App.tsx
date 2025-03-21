@@ -20,7 +20,8 @@ const AppContainer = styled.div<{ isSidebarCollapsed?: boolean }>`
     flex-direction: column;
     padding: 10px;
     gap: 10px;
-    padding-top: ${props => props.isSidebarCollapsed ? '74px' : '10px'};
+    padding-top: ${props => props.isSidebarCollapsed ? '80px' : '10px'};
+    margin-top: ${props => props.isSidebarCollapsed ? '0' : '0'};
   }
 `;
 
@@ -146,20 +147,19 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.collapsed ? '100%' : '100%'};
-    height: ${props => props.collapsed ? '64px' : 'auto'};
-    max-height: ${props => props.collapsed ? '64px' : '300px'};
-    flex-direction: ${props => props.collapsed ? 'row' : 'column'};
-    align-items: ${props => props.collapsed ? 'center' : 'flex-start'};
-    justify-content: ${props => props.collapsed ? 'flex-end' : 'flex-start'};
-    position: ${props => props.collapsed ? 'fixed' : 'relative'};
-    top: ${props => props.collapsed ? '0' : 'auto'};
-    left: 0;
-    right: 0;
-    z-index: ${props => props.collapsed ? '10' : '1'};
-    padding: ${props => props.collapsed ? '6px 12px' : '12px'};
-    border-radius: ${props => props.collapsed ? '0 0 12px 12px' : '12px'};
+    width: ${props => props.collapsed ? '0' : '100%'};
+    height: ${props => props.collapsed ? '0' : 'auto'};
+    max-height: ${props => props.collapsed ? '0' : '300px'};
+    opacity: ${props => props.collapsed ? '0' : '1'};
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    position: relative;
+    padding: ${props => props.collapsed ? '0' : '12px'};
     margin: ${props => props.collapsed ? '0' : '0 0 10px 0'};
+    border-radius: 12px;
+    pointer-events: ${props => props.collapsed ? 'none' : 'auto'};
+    visibility: ${props => props.collapsed ? 'hidden' : 'visible'};
   }
 `;
 
@@ -418,20 +418,55 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.collapsed ? '52px' : '100%'};
-    height: 52px;
-    min-height: 52px;
-    min-width: ${props => props.collapsed ? '52px' : 'auto'};
-    padding: ${props => props.collapsed ? '10px' : '12px'};
+    width: ${props => props.collapsed ? '60px' : '100%'};
+    height: ${props => props.collapsed ? '60px' : 'auto'};
+    min-height: ${props => props.collapsed ? '60px' : '44px'};
+    min-width: ${props => props.collapsed ? '60px' : 'auto'};
+    padding: ${props => props.collapsed ? '12px' : '12px'};
     margin: 0;
     
     svg {
       transform: ${props => props.collapsed ? 'rotate(90deg)' : 'rotate(-90deg)'};
-      font-size: 28px;
+      font-size: ${props => props.collapsed ? '32px' : '24px'};
     }
     
     .toggle-text {
       display: none;
+    }
+  }
+`;
+
+const MobileToggleButton = styled.button`
+  display: none; /* Hidden by default on desktop */
+  
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    right: 10px;
+    width: 70px;
+    height: 70px;
+    border-radius: 0 0 12px 12px;
+    background: white;
+    color: #2196f3;
+    border: 2px solid #2196f3;
+    border-top: none;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+    
+    svg {
+      font-size: 36px;
+    }
+    
+    &:active {
+      background-color: #e3f2fd;
+      transform: translateY(2px);
     }
   }
 `;
@@ -890,15 +925,25 @@ export const App: React.FC = () => {
             </>
           )}
         </SidebarContent>
+        {/* Show normal button on desktop, but hide on mobile */}
         {isSidebarCollapsed && (
-          <SidebarToggleButton 
-            collapsed={true} 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          >
-            <MdChevronRight />
-          </SidebarToggleButton>
+          <div className="desktop-only">
+            <SidebarToggleButton 
+              collapsed={true} 
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            >
+              <MdChevronRight />
+            </SidebarToggleButton>
+          </div>
         )}
       </SidebarContainer>
+      
+      {/* Add the mobile toggle button that's fixed at the top */}
+      {isSidebarCollapsed && (
+        <MobileToggleButton onClick={() => setIsSidebarCollapsed(false)}>
+          <MdChevronRight />
+        </MobileToggleButton>
+      )}
       
       <MainContent>
         <Timetable

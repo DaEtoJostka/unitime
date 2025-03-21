@@ -33,6 +33,10 @@ const GlobalStyle = createGlobalStyle`
     button {
       touch-action: manipulation;
     }
+    
+    .desktop-only {
+      display: none !important;
+    }
   }
 `;
 

@@ -6,6 +6,27 @@ import { TimeSlot, DEFAULT_TIME_SLOTS } from '../types/timeSlots';
 import styled from 'styled-components';
 import { CourseBlock } from './CourseBlock';
 
+// Add a useMediaQuery hook for responsive text
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(
+    () => window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handler = (e: MediaQueryListEvent) => {
+      setMatches(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+    };
+  }, [query]);
+
+  return matches;
+};
+
 const TimetableContainer = styled.div`
   position: relative;
   overflow: hidden;
@@ -236,7 +257,7 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolea
   background: ${props => props.$isCurrent ? '#e3f2fd' : '#fff'};
   min-height: 100px;
   position: relative;
-  transition: padding-bottom 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   border-right: 1px solid #e0e0e0;
   min-width: 120px;
   height: 100%;
@@ -277,8 +298,26 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolea
     padding: 3px;
     gap: 3px;
     
-    &:hover {
-      padding-bottom: 30px;
+    &.tapped {
+      padding-bottom: 22px;
+      background: ${props => props.$isCurrent ? '#d4e9fc' : '#f5f9ff'};
+      
+      .add-button {
+        opacity: 1;
+        visibility: visible;
+        animation: fadeIn 0.2s ease-in-out;
+      }
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px) translateX(-50%);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) translateX(-50%);
+        }
+      }
     }
   }
 `;
@@ -305,15 +344,27 @@ const AddButton = styled.button`
   }
   
   @media (max-width: 768px) {
-    font-size: 0.7em;
-    padding: 3px 6px;
-    width: calc(100% - 6px);
-    left: 3px;
+    font-size: 0.65em;
+    padding: 3px 5px;
+    width: auto;
+    min-width: 50%;
+    max-width: 80%;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 3px;
+    font-weight: 500;
+    background: #2196f3;
+    color: white;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    white-space: nowrap;
     
-    /* Make the add button always visible on touch devices */
-    opacity: 1;
-    visibility: visible;
+    &:active {
+      background: #1976d2;
+      transform: translateX(-50%) translateY(1px);
+    }
   }
 `;
 
@@ -338,13 +389,24 @@ const DropTarget: React.FC<DropTargetProps> = ({ timeSlot, dayIndex, children, o
       isOver: monitor.isOver(),
     }),
   }));
+  
+  const [isTapped, setIsTapped] = useState(false);
+  
+  const handleTap = () => {
+    setIsTapped(true);
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setIsTapped(false);
+    }, 3000);
+  };
 
   return (
     <CoursesContainer 
       ref={drop} 
-      className={isOver ? 'can-drop' : ''}
+      className={`${isOver ? 'can-drop' : ''} ${isTapped ? 'tapped' : ''}`}
       $isCurrent={$isCurrent}
       $isFirstDay={$isFirstDay}
+      onClick={handleTap}
     >
       {children}
     </CoursesContainer>
@@ -367,6 +429,7 @@ export const Timetable: React.FC<TimetableProps> = ({
   const [currentDayIndex, setCurrentDayIndex] = useState<number | null>(null);
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [currentBreak, setCurrentBreak] = useState<{ prevSlot: TimeSlot, nextSlot: TimeSlot, timeLeft: number } | null>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     const calculateWeekDates = () => {
@@ -556,7 +619,7 @@ export const Timetable: React.FC<TimetableProps> = ({
                               onAddCourse?.(timeSlot, dayIndex);
                             }}
                           >
-                            + Добавить занятие
+                            {isMobile ? "+ Занятие" : "+ Добавить занятие"}
                           </AddButton>
                         </DropTarget>
                       );
