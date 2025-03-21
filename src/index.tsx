@@ -15,6 +15,24 @@ const GlobalStyle = createGlobalStyle`
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #f5f5f5;
     color: #333;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve touch handling */
+  @media (max-width: 768px) {
+    html, body {
+      overflow-x: hidden;
+      position: relative;
+      height: 100%;
+    }
+    
+    input, button, select, textarea {
+      font-size: 16px !important; /* Prevent iOS zoom on focus */
+    }
+    
+    button {
+      touch-action: manipulation;
+    }
   }
 `;
 

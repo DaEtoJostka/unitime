@@ -21,8 +21,11 @@ const TimetableContainer = styled.div`
   height: calc(100vh - 40px);
   min-height: 600px;
 
-  @media (min-width: 768px) {
-    margin: 0;
+  @media (max-width: 768px) {
+    height: calc(100vh - 20px);
+    min-height: 500px;
+    border-radius: 4px;
+    margin-top: 10px;
   }
 `;
 
@@ -32,6 +35,13 @@ const TableWrapper = styled.div`
   overflow: auto;
   height: 100%;
   width: 100%;
+  
+  -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+
+  @media (max-width: 768px) {
+    /* Make scrolling smoother on mobile */
+    scroll-behavior: smooth;
+  }
 `;
 
 const Header = styled.div`
@@ -43,6 +53,10 @@ const Header = styled.div`
   position: sticky;
   top: 0;
   z-index: 2;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(60px, 80px) repeat(6, minmax(90px, 1fr));
+  }
 `;
 
 const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
@@ -88,6 +102,13 @@ const HeaderCell = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolean }>`
       background: #2196f3;
     }
   `}
+  
+  @media (max-width: 768px) {
+    padding: 8px 6px;
+    font-size: clamp(12px, 3vw, 14px);
+    min-width: 90px;
+    gap: 2px;
+  }
 `;
 
 const RowsWrapper = styled.div`
@@ -107,6 +128,10 @@ const TimeSlotRow = styled.div`
   &:last-child {
     border-bottom: none;
     margin-bottom: 0;
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(60px, 80px) repeat(6, minmax(90px, 1fr));
   }
 `;
 
@@ -151,6 +176,10 @@ const BreakRow = styled.div`
   background-color:rgb(255, 255, 255);
   border-bottom: 1px solid #e0e0e0;
   padding: 0;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: minmax(60px, 80px) repeat(6, minmax(90px, 1fr));
+  }
 `;
 
 const TimeCell = styled.div<{ $isCurrent?: boolean }>`
@@ -181,6 +210,20 @@ const TimeCell = styled.div<{ $isCurrent?: boolean }>`
     display: block;
     font-size: clamp(11px, 1.1vw, 12px);
     color: ${props => props.$isCurrent ? '#2196f3' : '#718096'};
+  }
+  
+  @media (max-width: 768px) {
+    padding: 8px 6px;
+    min-width: 60px;
+    
+    .start-time {
+      font-size: clamp(12px, 3vw, 14px);
+      margin-bottom: 1px;
+    }
+    
+    .end-time {
+      font-size: clamp(10px, 2.5vw, 11px);
+    }
   }
 `;
 
@@ -227,6 +270,17 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolea
   &.can-drop {
     background: #e3f2fd;
   }
+  
+  @media (max-width: 768px) {
+    min-width: 90px;
+    min-height: 80px;
+    padding: 3px;
+    gap: 3px;
+    
+    &:hover {
+      padding-bottom: 30px;
+    }
+  }
 `;
 
 const AddButton = styled.button`
@@ -248,6 +302,18 @@ const AddButton = styled.button`
 
   &:hover {
     background: #d0d0d0;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 0.7em;
+    padding: 3px 6px;
+    width: calc(100% - 6px);
+    left: 3px;
+    bottom: 3px;
+    
+    /* Make the add button always visible on touch devices */
+    opacity: 1;
+    visibility: visible;
   }
 `;
 

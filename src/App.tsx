@@ -9,12 +9,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
 
-const AppContainer = styled.div`
+const AppContainer = styled.div<{ isSidebarCollapsed?: boolean }>`
   max-width: 100%;
   margin: 0;
   padding: 20px;
   display: flex;
   gap: 20px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+    padding-top: ${props => props.isSidebarCollapsed ? '74px' : '10px'};
+  }
 `;
 
 const LogoArea = styled.div`
@@ -26,6 +33,12 @@ const LogoArea = styled.div`
   margin-bottom: 20px;
   gap: 0px;
   padding-top: 20px;
+  
+  @media (max-width: 768px) {
+    height: 120px;
+    margin-bottom: 10px;
+    padding-top: 10px;
+  }
 `;
 
 const LogoText = styled.div`
@@ -81,6 +94,10 @@ const LogoText = styled.div`
     animation: colorFlow 60s linear infinite;
     text-shadow: 0 0 10px rgba(106, 13, 173, 0.3);
   }
+  
+  @media (max-width: 768px) {
+    font-size: 32px;
+  }
 `;
 
 const LogoLetter = styled.span<{ index: number; isAnimating: boolean }>`
@@ -127,6 +144,23 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   &:hover {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
   }
+  
+  @media (max-width: 768px) {
+    width: ${props => props.collapsed ? '100%' : '100%'};
+    height: ${props => props.collapsed ? '64px' : 'auto'};
+    max-height: ${props => props.collapsed ? '64px' : '300px'};
+    flex-direction: ${props => props.collapsed ? 'row' : 'column'};
+    align-items: ${props => props.collapsed ? 'center' : 'flex-start'};
+    justify-content: ${props => props.collapsed ? 'flex-end' : 'flex-start'};
+    position: ${props => props.collapsed ? 'fixed' : 'relative'};
+    top: ${props => props.collapsed ? '0' : 'auto'};
+    left: 0;
+    right: 0;
+    z-index: ${props => props.collapsed ? '10' : '1'};
+    padding: ${props => props.collapsed ? '6px 12px' : '12px'};
+    border-radius: ${props => props.collapsed ? '0 0 12px 12px' : '12px'};
+    margin: ${props => props.collapsed ? '0' : '0 0 10px 0'};
+  }
 `;
 
 const SidebarContent = styled.div<{ collapsed: boolean }>`
@@ -159,6 +193,14 @@ const SidebarContent = styled.div<{ collapsed: boolean }>`
   &::-webkit-scrollbar-thumb:hover {
     background: #ccc;
   }
+  
+  @media (max-width: 768px) {
+    transform: ${props => props.collapsed ? 'translateY(-20px)' : 'translateY(0)'};
+    padding-right: 0;
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+  }
 `;
 
 const ActionButtonsContainer = styled.div`
@@ -173,6 +215,10 @@ const ActionButtonsContainer = styled.div`
 const MainContent = styled.div`
   flex: 1;
   min-width: 0;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const Modal = styled.div`
@@ -197,6 +243,13 @@ const ModalContent = styled.div`
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    width: 90%;
+    max-width: none;
+    padding: 15px;
+    max-height: 80vh;
+  }
 `;
 
 const ActionButton = styled.button<{ variant: 'primary' | 'success' | 'danger' }>`
@@ -241,6 +294,13 @@ const ActionButton = styled.button<{ variant: 'primary' | 'success' | 'danger' }
   svg {
     font-size: 18px;
     color: inherit;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+    min-height: 44px;
+    font-size: 16px;
+    justify-content: center;
   }
 `;
 
@@ -355,6 +415,24 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform: ${props => props.collapsed ? 'rotate(0deg)' : 'rotate(180deg)'};
     color: #2196f3;
+  }
+  
+  @media (max-width: 768px) {
+    width: ${props => props.collapsed ? '52px' : '100%'};
+    height: 52px;
+    min-height: 52px;
+    min-width: ${props => props.collapsed ? '52px' : 'auto'};
+    padding: ${props => props.collapsed ? '10px' : '12px'};
+    margin: 0;
+    
+    svg {
+      transform: ${props => props.collapsed ? 'rotate(90deg)' : 'rotate(-90deg)'};
+      font-size: 28px;
+    }
+    
+    .toggle-text {
+      display: none;
+    }
   }
 `;
 
@@ -659,7 +737,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <AppContainer>
+    <AppContainer isSidebarCollapsed={isSidebarCollapsed}>
       <SidebarContainer collapsed={isSidebarCollapsed}>
         <SidebarContent collapsed={isSidebarCollapsed}>
           {!isSidebarCollapsed && (
@@ -806,7 +884,7 @@ export const App: React.FC = () => {
                   collapsed={false}
                   onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 >
-                  <MdChevronLeft /> Свернуть панель
+                  <MdChevronLeft /> <span className="toggle-text">Свернуть панель</span>
                 </SidebarToggleButton>
               </ActionButtonsContainer>
             </>
@@ -816,7 +894,6 @@ export const App: React.FC = () => {
           <SidebarToggleButton 
             collapsed={true} 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            style={{ marginTop: 'auto' }}
           >
             <MdChevronRight />
           </SidebarToggleButton>

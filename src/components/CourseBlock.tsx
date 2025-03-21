@@ -36,6 +36,21 @@ const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
     transform: ${props => props.isDragging ? 'none' : 'scale(1.02)'};
     box-shadow: ${props => props.isDragging ? 'none' : '0 2px 5px rgba(0,0,0,0.1)'};
   }
+  
+  @media (max-width: 768px) {
+    padding: 6px;
+    font-size: 0.8em;
+    
+    /* Make tap targets larger for mobile */
+    &:active {
+      background: ${props => 
+        props.type === 'lecture' ? '#ffcdd2' :
+        props.type === 'lab' ? 'rgba(19, 164, 236, 0.2)' :
+        props.type === 'practice' ? 'rgba(19, 109, 236, 0.2)' :
+        props.type === 'exam' ? '#ffe0b2' :
+        '#e1bee7'};
+    }
+  }
 `;
 
 const CourseTitle = styled.div`
@@ -52,6 +67,14 @@ const CourseTitle = styled.div`
   white-space: normal;
   line-height: 1.3;
   max-height: 2.6em;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95em;
+    margin-bottom: 2px;
+    line-height: 1.2;
+    -webkit-line-clamp: 1;
+    max-height: 1.2em;
+  }
 `;
 
 const CourseInfo = styled.div`
@@ -62,6 +85,11 @@ const CourseInfo = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8em;
+    line-height: 1.2;
+  }
 `;
 
 interface CourseBlockProps {

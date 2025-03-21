@@ -3,25 +3,62 @@ import { Course, CourseType } from '../types/course';
 import { TimeSlot } from '../types/timeSlots';
 import styled from 'styled-components';
 
+// Add a useMediaQuery hook
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(
+    () => window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handler = (e: MediaQueryListEvent) => {
+      setMatches(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+    };
+  }, [query]);
+
+  return matches;
+};
+
 const FormContainer = styled.div`
   padding: 20px;
+  
+  @media (max-width: 768px) {
+    padding: 15px 10px;
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 15px;
+  
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 5px;
+  
+  @media (max-width: 768px) {
+    gap: 4px;
+  }
 `;
 
 const Label = styled.label`
   font-weight: 500;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const Input = styled.input`
@@ -33,6 +70,11 @@ const Input = styled.input`
   &:focus {
     outline: none;
     border-color: #2196f3;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+    font-size: 16px; /* Prevent auto-zoom on iOS */
   }
 `;
 
@@ -81,6 +123,14 @@ const Button = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+    min-height: 44px;
+    font-size: 16px;
+    justify-content: center;
+    width: 100%;
+  }
 `;
 
 const DeleteButton = styled(Button)`
@@ -94,6 +144,11 @@ const DeleteButton = styled(Button)`
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+  
+  @media (max-width: 768px) {
+    margin-left: 0;
+    margin-top: 10px;
+  }
 `;
 
 const DuplicateButton = styled(Button)`
@@ -106,6 +161,11 @@ const DuplicateButton = styled(Button)`
     background: #45a049;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (max-width: 768px) {
+    margin-left: 0;
+    margin-top: 10px;
   }
 `;
 
@@ -135,6 +195,11 @@ const SelectButton = styled.button`
   display: flex;
   align-items: center;
   gap: 6px;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+    font-size: 16px; /* Prevent auto-zoom on iOS */
+  }
 `;
 
 const OptionsList = styled.div<{ isOpen: boolean }>`
@@ -148,6 +213,11 @@ const OptionsList = styled.div<{ isOpen: boolean }>`
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: ${props => props.isOpen ? 'block' : 'none'};
   z-index: 100;
+  
+  @media (max-width: 768px) {
+    max-height: 200px;
+    overflow-y: auto;
+  }
 `;
 
 const OptionItem = styled.div<{ isSelected: boolean }>`
@@ -189,6 +259,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   });
 
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     if (timeSlot && dayIndex !== undefined) {
@@ -297,7 +368,13 @@ export const CourseForm: React.FC<CourseFormProps> = ({
           />
         </FormGroup>
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '10px', 
+          marginTop: '10px', 
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center' 
+        }}>
           <Button type="submit">
             {course ? 'Сохранить' : 'Добавить'}
           </Button>
