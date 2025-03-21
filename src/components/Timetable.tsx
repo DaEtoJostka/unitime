@@ -127,6 +127,32 @@ const CurrentTimeIndicator = styled.div`
   border: 1px solid rgba(255,255,255,0.15);
 `;
 
+const BreakIndicator = styled.div`
+  background-color: #0060e6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  width: auto;
+  margin: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  height: 36px;
+`;
+
+const BreakRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(80px, 100px) repeat(6, minmax(120px, 1fr));
+  min-width: fit-content;
+  background-color:rgb(255, 255, 255);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0;
+`;
+
 const TimeCell = styled.div<{ $isCurrent?: boolean }>`
   box-sizing: border-box;
   position: relative;
@@ -274,6 +300,7 @@ export const Timetable: React.FC<TimetableProps> = ({
 }) => {
   const [currentDayIndex, setCurrentDayIndex] = useState<number | null>(null);
   const [weekDates, setWeekDates] = useState<Date[]>([]);
+  const [currentBreak, setCurrentBreak] = useState<{ prevSlot: TimeSlot, nextSlot: TimeSlot, timeLeft: number } | null>(null);
 
   useEffect(() => {
     const calculateWeekDates = () => {
@@ -346,6 +373,43 @@ export const Timetable: React.FC<TimetableProps> = ({
     return currentTotal >= startTotal && currentTotal <= endTotal;
   };
 
+  const checkIfInBreak = () => {
+    const now = new Date();
+    const [currentHour, currentMinute] = [now.getHours(), now.getMinutes()];
+    const currentTotal = currentHour * 60 + currentMinute;
+    
+    for (let i = 0; i < DEFAULT_TIME_SLOTS.length - 1; i++) {
+      const currentSlot = DEFAULT_TIME_SLOTS[i];
+      const nextSlot = DEFAULT_TIME_SLOTS[i + 1];
+      
+      const [endHour, endMinute] = currentSlot.endTime.split(':').map(Number);
+      const [nextStartHour, nextStartMinute] = nextSlot.startTime.split(':').map(Number);
+      
+      const endTotal = endHour * 60 + endMinute;
+      const nextStartTotal = nextStartHour * 60 + nextStartMinute;
+      
+      if (currentTotal >= endTotal && currentTotal < nextStartTotal) {
+        const timeLeft = nextStartTotal - currentTotal;
+        return { prevSlot: currentSlot, nextSlot: nextSlot, timeLeft };
+      }
+    }
+    
+    return null;
+  };
+
+  useEffect(() => {
+    const checkAndUpdateBreak = () => {
+      setCurrentBreak(checkIfInBreak());
+    };
+    
+    // Initial check
+    checkAndUpdateBreak();
+    
+    const intervalId = setInterval(checkAndUpdateBreak, 60000); // Check every minute
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <DndProvider backend={HTML5Backend}>
       <TimetableContainer>
@@ -388,48 +452,66 @@ export const Timetable: React.FC<TimetableProps> = ({
             ))}
           </Header>
           <RowsWrapper>
-            {DEFAULT_TIME_SLOTS.map((timeSlot) => {
+            {DEFAULT_TIME_SLOTS.map((timeSlot, index) => {
               const isCurrentTime = isCurrentTimeSlot(timeSlot);
+              
               return (
-                <TimeSlotRow key={timeSlot.id}>
-                  <TimeCell $isCurrent={isCurrentTime}>
-                    <span className="start-time">{timeSlot.startTime}</span>
-                    <span className="end-time">{timeSlot.endTime}</span>
-                  </TimeCell>
-                  {days.map((_, dayIndex) => {
-                    const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
-                    const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
-                    
-                    return (
-                      <DropTarget
-                        key={dayIndex}
-                        timeSlot={timeSlot}
-                        dayIndex={dayIndex}
-                        onMoveCourse={onMoveCourse!}
-                        $isCurrent={currentDayIndex === dayIndex}
-                        $isFirstDay={dayIndex === 0}
-                      >
-                        {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
-                        {slotCourses.map(course => (
-                          <CourseBlock
-                            key={course.id}
-                            course={course}
-                            onEdit={onEditCourse}
-                          />
-                        ))}
-                        <AddButton 
-                          className="add-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddCourse?.(timeSlot, dayIndex);
-                          }}
+                <React.Fragment key={timeSlot.id}>
+                  <TimeSlotRow>
+                    <TimeCell $isCurrent={isCurrentTime}>
+                      <span className="start-time">{timeSlot.startTime}</span>
+                      <span className="end-time">{timeSlot.endTime}</span>
+                    </TimeCell>
+                    {days.map((_, dayIndex) => {
+                      const isCurrentCell = isCurrentTime && dayIndex === currentDayIndex;
+                      const slotCourses = getCoursesForSlot(timeSlot, dayIndex);
+                      
+                      return (
+                        <DropTarget
+                          key={dayIndex}
+                          timeSlot={timeSlot}
+                          dayIndex={dayIndex}
+                          onMoveCourse={onMoveCourse!}
+                          $isCurrent={currentDayIndex === dayIndex}
+                          $isFirstDay={dayIndex === 0}
                         >
-                          + Добавить занятие
-                        </AddButton>
-                      </DropTarget>
-                    );
-                  })}
-                </TimeSlotRow>
+                          {isCurrentCell && <CurrentTimeIndicator>Сейчас идёт</CurrentTimeIndicator>}
+                          {slotCourses.map(course => (
+                            <CourseBlock
+                              key={course.id}
+                              course={course}
+                              onEdit={onEditCourse}
+                            />
+                          ))}
+                          <AddButton 
+                            className="add-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddCourse?.(timeSlot, dayIndex);
+                            }}
+                          >
+                            + Добавить занятие
+                          </AddButton>
+                        </DropTarget>
+                      );
+                    })}
+                  </TimeSlotRow>
+                  
+                  {/* Break indicator between time slots */}
+                  {currentBreak && 
+                   index === DEFAULT_TIME_SLOTS.indexOf(currentBreak.prevSlot) && (
+                    <BreakRow>
+                      <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', padding: '5px 0' }}>
+                        <BreakIndicator>
+                          Сейчас идёт перерыв • До конца осталось {currentBreak.timeLeft} {
+                            currentBreak.timeLeft === 1 ? 'минута' : 
+                            currentBreak.timeLeft > 1 && currentBreak.timeLeft < 5 ? 'минуты' : 'минут'
+                          }
+                        </BreakIndicator>
+                      </div>
+                    </BreakRow>
+                  )}
+                </React.Fragment>
               );
             })}
           </RowsWrapper>
