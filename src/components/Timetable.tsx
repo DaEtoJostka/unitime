@@ -299,7 +299,7 @@ const CoursesContainer = styled.div<{ $isCurrent?: boolean; $isFirstDay?: boolea
     gap: 3px;
     
     &.tapped {
-      padding-bottom: 22px;
+      padding-bottom: 20px;
       background: ${props => props.$isCurrent ? '#d4e9fc' : '#f5f9ff'};
       
       .add-button {
@@ -344,25 +344,26 @@ const AddButton = styled.button`
   }
   
   @media (max-width: 768px) {
-    font-size: 0.65em;
-    padding: 3px 5px;
+    font-size: 0.55em;
+    padding: 2px 4px;
     width: auto;
-    min-width: 50%;
-    max-width: 80%;
+    min-width: 40%;
+    max-width: 70%;
     left: 50%;
     transform: translateX(-50%);
     bottom: 3px;
     font-weight: 500;
-    background: #2196f3;
+    background: #a0a0a0;
     color: white;
     border-radius: 3px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     opacity: 0;
     visibility: hidden;
     white-space: nowrap;
+    letter-spacing: -0.2px;
     
     &:active {
-      background: #1976d2;
+      background: #888888;
       transform: translateX(-50%) translateY(1px);
     }
   }
@@ -619,7 +620,7 @@ export const Timetable: React.FC<TimetableProps> = ({
                               onAddCourse?.(timeSlot, dayIndex);
                             }}
                           >
-                            {isMobile ? "+ Занятие" : "+ Добавить занятие"}
+                            {isMobile ? "+" : "+ Добавить занятие"}
                           </AddButton>
                         </DropTarget>
                       );
