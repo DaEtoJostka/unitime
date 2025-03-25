@@ -181,13 +181,13 @@ const BreakIndicator = styled.div`
   justify-content: center;
   padding: 8px 12px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   width: auto;
   margin: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  height: 22px;
+  height: 24px;
 `;
 
 const BreakRow = styled.div`
