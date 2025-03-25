@@ -181,20 +181,20 @@ const BreakIndicator = styled.div`
   justify-content: center;
   padding: 8px 12px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   width: auto;
   margin: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  height: 36px;
+  height: 22px;
 `;
 
 const BreakRow = styled.div`
   display: grid;
   grid-template-columns: minmax(80px, 100px) repeat(6, minmax(120px, 1fr));
   min-width: fit-content;
-  background-color:rgb(255, 255, 255);
+  background-color:rgb(227, 242, 253);
   border-bottom: 1px solid #e0e0e0;
   padding: 0;
   
