@@ -3,13 +3,13 @@ import { useDrag } from 'react-dnd';
 import styled, { createGlobalStyle } from 'styled-components';
 import { Course } from '../types/course';
 
-const GlobalStyle = createGlobalStyle<{ isDragging: boolean }>`
+const GlobalStyle = createGlobalStyle<{ $isDragging: boolean }>`
   * {
-    cursor: ${props => props.isDragging ? 'grabbing !important' : 'inherit'};
+    cursor: ${props => props.$isDragging ? 'grabbing !important' : 'inherit'};
   }
 `;
 
-const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
+const CourseWrapper = styled.div<{ type: string; $isDragging: boolean }>`
   padding: 8px;
   background: ${props => 
     props.type === 'lecture' ? '#ffebee' :
@@ -28,13 +28,13 @@ const CourseWrapper = styled.div<{ type: string; isDragging: boolean }>`
   transition: all 0.2s;
   font-size: 0.9em;
   z-index: 1;
-  opacity: ${props => props.isDragging ? 0.4 : 1};
-  transform: ${props => props.isDragging ? 'none' : 'none'};
+  opacity: ${props => props.$isDragging ? 0.4 : 1};
+  transform: ${props => props.$isDragging ? 'none' : 'none'};
   user-select: none;
 
   &:hover {
-    transform: ${props => props.isDragging ? 'none' : 'scale(1.02)'};
-    box-shadow: ${props => props.isDragging ? 'none' : '0 2px 5px rgba(0,0,0,0.1)'};
+    transform: ${props => props.$isDragging ? 'none' : 'scale(1.02)'};
+    box-shadow: ${props => props.$isDragging ? 'none' : '0 2px 5px rgba(0,0,0,0.1)'};
   }
   
   @media (max-width: 768px) {
@@ -108,11 +108,11 @@ export const CourseBlock: React.FC<CourseBlockProps> = ({ course, onEdit }) => {
 
   return (
     <>
-      <GlobalStyle isDragging={isDragging} />
+      <GlobalStyle $isDragging={isDragging} />
       <CourseWrapper
         ref={drag}
         type={course.type}
-        isDragging={isDragging}
+        $isDragging={isDragging}
         onClick={() => onEdit?.(course)}
       >
         <CourseTitle>{course.title}</CourseTitle>

@@ -202,7 +202,7 @@ const SelectButton = styled.button`
   }
 `;
 
-const OptionsList = styled.div<{ isOpen: boolean }>`
+const OptionsList = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   width: 100%;
   top: calc(100% + 4px);
@@ -211,7 +211,7 @@ const OptionsList = styled.div<{ isOpen: boolean }>`
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  display: ${props => props.isOpen ? 'block' : 'none'};
+  display: ${props => props.$isOpen ? 'block' : 'none'};
   z-index: 100;
   
   @media (max-width: 768px) {
@@ -220,13 +220,13 @@ const OptionsList = styled.div<{ isOpen: boolean }>`
   }
 `;
 
-const OptionItem = styled.div<{ isSelected: boolean }>`
+const OptionItem = styled.div<{ $isSelected: boolean }>`
   padding: 8px 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  background: ${props => props.isSelected ? '#f5f5f5' : 'white'};
+  background: ${props => props.$isSelected ? '#f5f5f5' : 'white'};
 
   &:hover {
     background: #f8f8f8;
@@ -325,11 +325,11 @@ export const CourseForm: React.FC<CourseFormProps> = ({
               }[formData.type]}
             </SelectButton>
             
-            <OptionsList isOpen={isSelectOpen}>
+            <OptionsList $isOpen={isSelectOpen}>
               {Object.entries(TYPE_COLORS).map(([type, color]) => (
                 <OptionItem
                   key={type}
-                  isSelected={type === formData.type}
+                  $isSelected={type === formData.type}
                   onClick={() => {
                     handleChange({ target: { name: 'type', value: type } } as any);
                     setIsSelectOpen(false);

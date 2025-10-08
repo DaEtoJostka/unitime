@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
 
-const AppContainer = styled.div<{ isSidebarCollapsed?: boolean }>`
+const AppContainer = styled.div<{ $isSidebarCollapsed?: boolean }>`
   max-width: 100%;
   margin: 0;
   padding: 20px;
@@ -20,8 +20,8 @@ const AppContainer = styled.div<{ isSidebarCollapsed?: boolean }>`
     flex-direction: column;
     padding: 10px;
     gap: 10px;
-    padding-top: ${props => props.isSidebarCollapsed ? '80px' : '10px'};
-    margin-top: ${props => props.isSidebarCollapsed ? '0' : '0'};
+    padding-top: ${props => props.$isSidebarCollapsed ? '80px' : '10px'};
+    margin-top: ${props => props.$isSidebarCollapsed ? '0' : '0'};
   }
 `;
 
@@ -101,10 +101,10 @@ const LogoText = styled.div`
   }
 `;
 
-const LogoLetter = styled.span<{ index: number; isAnimating: boolean }>`
+const LogoLetter = styled.span<{ index: number; $isAnimating: boolean }>`
   display: inline-block;
-  animation: ${props => props.isAnimating ? 'waveAnimation 0.6s ease' : 'none'};
-  animation-delay: ${props => props.isAnimating ? `${props.index * 0.07}s` : '0s'};
+  animation: ${props => props.$isAnimating ? 'waveAnimation 0.6s ease' : 'none'};
+  animation-delay: ${props => props.$isAnimating ? `${props.index * 0.07}s` : '0s'};
   animation-fill-mode: forwards;
   background: inherit;
   -webkit-background-clip: text;
@@ -127,8 +127,8 @@ const AuthorLink = styled.a`
   }
 `;
 
-const SidebarContainer = styled.div<{ collapsed: boolean }>`
-  width: ${props => props.collapsed ? '48px' : '280px'};
+const SidebarContainer = styled.div<{ $collapsed: boolean }>`
+  width: ${props => props.$collapsed ? '48px' : '280px'};
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -138,7 +138,7 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   position: relative;
   background: white;
   border-radius: 12px;
-  padding: ${props => props.collapsed ? '12px 6px' : '12px'};
+  padding: ${props => props.$collapsed ? '12px 6px' : '12px'};
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   height: calc(100vh - 40px);
 
@@ -147,33 +147,33 @@ const SidebarContainer = styled.div<{ collapsed: boolean }>`
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.collapsed ? '0' : '100%'};
-    height: ${props => props.collapsed ? '0' : 'auto'};
-    max-height: ${props => props.collapsed ? '0' : '300px'};
-    opacity: ${props => props.collapsed ? '0' : '1'};
+    width: ${props => props.$collapsed ? '0' : '100%'};
+    height: ${props => props.$collapsed ? '0' : 'auto'};
+    max-height: ${props => props.$collapsed ? '0' : '300px'};
+    opacity: ${props => props.$collapsed ? '0' : '1'};
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
     position: relative;
-    padding: ${props => props.collapsed ? '0' : '12px'};
-    margin: ${props => props.collapsed ? '0' : '0 0 10px 0'};
+    padding: ${props => props.$collapsed ? '0' : '12px'};
+    margin: ${props => props.$collapsed ? '0' : '0 0 10px 0'};
     border-radius: 12px;
-    pointer-events: ${props => props.collapsed ? 'none' : 'auto'};
-    visibility: ${props => props.collapsed ? 'hidden' : 'visible'};
+    pointer-events: ${props => props.$collapsed ? 'none' : 'auto'};
+    visibility: ${props => props.$collapsed ? 'hidden' : 'visible'};
   }
 `;
 
-const SidebarContent = styled.div<{ collapsed: boolean }>`
-  opacity: ${props => props.collapsed ? 0 : 1};
-  transform: ${props => props.collapsed ? 'translateX(-20px)' : 'translateX(0)'};
+const SidebarContent = styled.div<{ $collapsed: boolean }>`
+  opacity: ${props => props.$collapsed ? 0 : 1};
+  transform: ${props => props.$collapsed ? 'translateX(-20px)' : 'translateX(0)'};
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transition-delay: ${props => props.collapsed ? '0s' : '0.1s'};
+  transition-delay: ${props => props.$collapsed ? '0s' : '0.1s'};
   display: flex;
   flex-direction: column;
   width: 100%;
   flex: 1;
   overflow-y: auto;
-  padding-right: ${props => props.collapsed ? '0' : '8px'};
+  padding-right: ${props => props.$collapsed ? '0' : '8px'};
   height: 100%;
 
   /* Customize scrollbar */
@@ -195,7 +195,7 @@ const SidebarContent = styled.div<{ collapsed: boolean }>`
   }
   
   @media (max-width: 768px) {
-    transform: ${props => props.collapsed ? 'translateY(-20px)' : 'translateY(0)'};
+    transform: ${props => props.$collapsed ? 'translateY(-20px)' : 'translateY(0)'};
     padding-right: 0;
     overflow-y: auto;
     height: 100%;
@@ -378,12 +378,12 @@ const ImportDropZone = styled.div<{ $isDragOver: boolean }>`
   }
 `;
 
-const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
+const SidebarToggleButton = styled.button<{ $collapsed?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: ${props => props.collapsed ? '8px' : '10px 16px'};
+  padding: ${props => props.$collapsed ? '8px' : '10px 16px'};
   min-height: 36px;
   background: #f8f9fa;
   color: #2196f3;
@@ -395,8 +395,8 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   line-height: 1;
-  width: ${props => props.collapsed ? '36px' : '100%'};
-  height: ${props => props.collapsed ? 'calc(100vh - 40px - 24px)' : 'auto'};
+  width: ${props => props.$collapsed ? '36px' : '100%'};
+  height: ${props => props.$collapsed ? 'calc(100vh - 40px - 24px)' : 'auto'};
   box-sizing: border-box;
 
   &:hover {
@@ -413,21 +413,21 @@ const SidebarToggleButton = styled.button<{ collapsed?: boolean }>`
   svg {
     font-size: 18px;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: ${props => props.collapsed ? 'rotate(0deg)' : 'rotate(180deg)'};
+    transform: ${props => props.$collapsed ? 'rotate(0deg)' : 'rotate(180deg)'};
     color: #2196f3;
   }
   
   @media (max-width: 768px) {
-    width: ${props => props.collapsed ? '60px' : '100%'};
-    height: ${props => props.collapsed ? '60px' : 'auto'};
-    min-height: ${props => props.collapsed ? '60px' : '44px'};
-    min-width: ${props => props.collapsed ? '60px' : 'auto'};
-    padding: ${props => props.collapsed ? '12px' : '12px'};
+    width: ${props => props.$collapsed ? '60px' : '100%'};
+    height: ${props => props.$collapsed ? '60px' : 'auto'};
+    min-height: ${props => props.$collapsed ? '60px' : '44px'};
+    min-width: ${props => props.$collapsed ? '60px' : 'auto'};
+    padding: ${props => props.$collapsed ? '12px' : '12px'};
     margin: 0;
     
     svg {
-      transform: ${props => props.collapsed ? 'rotate(90deg)' : 'rotate(-90deg)'};
-      font-size: ${props => props.collapsed ? '32px' : '24px'};
+      transform: ${props => props.$collapsed ? 'rotate(90deg)' : 'rotate(-90deg)'};
+      font-size: ${props => props.$collapsed ? '32px' : '24px'};
     }
     
     .toggle-text {
@@ -772,20 +772,20 @@ export const App: React.FC = () => {
   };
 
   return (
-    <AppContainer isSidebarCollapsed={isSidebarCollapsed}>
-      <SidebarContainer collapsed={isSidebarCollapsed}>
-        <SidebarContent collapsed={isSidebarCollapsed}>
+    <AppContainer $isSidebarCollapsed={isSidebarCollapsed}>
+      <SidebarContainer $collapsed={isSidebarCollapsed}>
+        <SidebarContent $collapsed={isSidebarCollapsed}>
           {!isSidebarCollapsed && (
             <>
               <LogoArea>
                 <LogoText onClick={handleLogoClick}>
-                  <LogoLetter index={0} isAnimating={isWaveAnimating}>U</LogoLetter>
-                  <LogoLetter index={1} isAnimating={isWaveAnimating}>n</LogoLetter>
-                  <LogoLetter index={2} isAnimating={isWaveAnimating}>i</LogoLetter>
-                  <LogoLetter index={3} isAnimating={isWaveAnimating}>T</LogoLetter>
-                  <LogoLetter index={4} isAnimating={isWaveAnimating}>i</LogoLetter>
-                  <LogoLetter index={5} isAnimating={isWaveAnimating}>m</LogoLetter>
-                  <LogoLetter index={6} isAnimating={isWaveAnimating}>e</LogoLetter>
+                  <LogoLetter index={0} $isAnimating={isWaveAnimating}>U</LogoLetter>
+                  <LogoLetter index={1} $isAnimating={isWaveAnimating}>n</LogoLetter>
+                  <LogoLetter index={2} $isAnimating={isWaveAnimating}>i</LogoLetter>
+                  <LogoLetter index={3} $isAnimating={isWaveAnimating}>T</LogoLetter>
+                  <LogoLetter index={4} $isAnimating={isWaveAnimating}>i</LogoLetter>
+                  <LogoLetter index={5} $isAnimating={isWaveAnimating}>m</LogoLetter>
+                  <LogoLetter index={6} $isAnimating={isWaveAnimating}>e</LogoLetter>
                 </LogoText>
                 <AuthorLink 
                   href="https://github.com/DaEtoJostka"
@@ -916,7 +916,7 @@ export const App: React.FC = () => {
                 />
 
                 <SidebarToggleButton 
-                  collapsed={false}
+                  $collapsed={false}
                   onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 >
                   <MdChevronLeft /> <span className="toggle-text">Свернуть панель</span>
@@ -929,7 +929,7 @@ export const App: React.FC = () => {
         {isSidebarCollapsed && (
           <div className="desktop-only">
             <SidebarToggleButton 
-              collapsed={true} 
+              $collapsed={true} 
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             >
               <MdChevronRight />
