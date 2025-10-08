@@ -1,237 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Course, CourseType } from '../types/course';
 import { TimeSlot } from '../types/timeSlots';
-import styled from 'styled-components';
-
-// Add a useMediaQuery hook
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(
-    () => window.matchMedia(query).matches
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    const handler = (e: MediaQueryListEvent) => {
-      setMatches(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handler);
-    return () => {
-      mediaQuery.removeEventListener('change', handler);
-    };
-  }, [query]);
-
-  return matches;
-};
-
-const FormContainer = styled.div`
-  padding: 20px;
-  
-  @media (max-width: 768px) {
-    padding: 15px 10px;
-  }
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  
-  @media (max-width: 768px) {
-    gap: 12px;
-  }
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  
-  @media (max-width: 768px) {
-    gap: 4px;
-  }
-`;
-
-const Label = styled.label`
-  font-weight: 500;
-  color: #333;
-  
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
-const Input = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #2196f3;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 10px;
-    font-size: 16px; /* Prevent auto-zoom on iOS */
-  }
-`;
-
-const OptionIndicator = styled.span<{ color: string }>`
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  background: ${props => props.color};
-  margin-right: 6px;
-  vertical-align: middle;
-  flex-shrink: 0;
-`;
-
-const Button = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  min-height: 36px;
-  background: #2196f3;
-  color: white;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  line-height: 1;
-
-  &:hover {
-    background: #1976d2;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  &:disabled {
-    background: #ccc;
-    border-color: #ccc;
-    cursor: not-allowed;
-    transform: none;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 12px;
-    min-height: 44px;
-    font-size: 16px;
-    justify-content: center;
-    width: 100%;
-  }
-`;
-
-const DeleteButton = styled(Button)`
-  background: #f44336;
-  color: white;
-  border: 1px solid #f44336;
-  margin-left: auto;
-
-  &:hover {
-    background: #d32f2f;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  @media (max-width: 768px) {
-    margin-left: 0;
-    margin-top: 10px;
-  }
-`;
-
-const DuplicateButton = styled(Button)`
-  background: #4CAF50;
-  color: white;
-  border: 1px solid #4CAF50;
-  margin-left: auto;
-
-  &:hover {
-    background: #45a049;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  @media (max-width: 768px) {
-    margin-left: 0;
-    margin-top: 10px;
-  }
-`;
-
-// Создадим объект с цветами для типов занятий
-const TYPE_COLORS = {
-  lecture: '#ef5350',
-  lab: '#13a4ec',
-  practice: '#136dec',
-  seminar: '#ab47bc',
-  exam: '#ff9800'
-};
-
-// Добавим новые стили
-const CustomSelectWrapper = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
-const SelectButton = styled.button`
-  width: 100%;
-  padding: 8px 12px;
-  text-align: left;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  
-  @media (max-width: 768px) {
-    padding: 10px;
-    font-size: 16px; /* Prevent auto-zoom on iOS */
-  }
-`;
-
-const OptionsList = styled.div<{ $isOpen: boolean }>`
-  position: absolute;
-  width: 100%;
-  top: calc(100% + 4px);
-  left: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  display: ${props => props.$isOpen ? 'block' : 'none'};
-  z-index: 100;
-  
-  @media (max-width: 768px) {
-    max-height: 200px;
-    overflow-y: auto;
-  }
-`;
-
-const OptionItem = styled.div<{ $isSelected: boolean }>`
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: ${props => props.$isSelected ? '#f5f5f5' : 'white'};
-
-  &:hover {
-    background: #f8f8f8;
-  }
-`;
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { TYPE_COLORS, TYPE_LABELS } from '../constants/courseTypes';
+import { generateId } from '../utils/idGenerator';
+import {
+  FormContainer,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  OptionIndicator,
+  Button,
+  DeleteButton,
+  DuplicateButton,
+  CustomSelectWrapper,
+  SelectButton,
+  OptionsList,
+  OptionItem
+} from '../styles/CourseFormStyles';
 
 interface CourseFormProps {
   timeSlot?: TimeSlot;
@@ -275,7 +62,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newCourse: Course = {
-      id: course?.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: course?.id || generateId(),
       title: formData.title || '',
       type: formData.type,
       location: formData.location || '',
@@ -299,8 +86,9 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     <FormContainer>
       <Form onSubmit={handleSubmit}>
         <FormGroup>
-          <Label>Название</Label>
+          <Label htmlFor="course-title">Название</Label>
           <Input
+            id="course-title"
             name="title"
             value={formData.title}
             onChange={handleChange}
@@ -309,40 +97,28 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         </FormGroup>
 
         <FormGroup>
-          <Label>Тип</Label>
+          <Label htmlFor="course-type">Тип</Label>
           <CustomSelectWrapper>
             <SelectButton 
               type="button" 
               onClick={() => setIsSelectOpen(!isSelectOpen)}
             >
               <OptionIndicator color={TYPE_COLORS[formData.type]} />
-              {{
-                lecture: 'Лекция',
-                lab: 'Лабораторная',
-                practice: 'Практика',
-                seminar: 'Семинар',
-                exam: 'Экзамен'
-              }[formData.type]}
+              {TYPE_LABELS[formData.type]}
             </SelectButton>
             
             <OptionsList $isOpen={isSelectOpen}>
-              {Object.entries(TYPE_COLORS).map(([type, color]) => (
+              {(Object.entries(TYPE_COLORS) as [CourseType, string][]).map(([type, color]) => (
                 <OptionItem
                   key={type}
                   $isSelected={type === formData.type}
                   onClick={() => {
-                    handleChange({ target: { name: 'type', value: type } } as any);
+                    handleChange({ target: { name: 'type', value: type } } as React.ChangeEvent<HTMLInputElement>);
                     setIsSelectOpen(false);
                   }}
                 >
                   <OptionIndicator color={color} />
-                  {{
-                    lecture: 'Лекция',
-                    lab: 'Лабораторная',
-                    practice: 'Практика',
-                    seminar: 'Семинар',
-                    exam: 'Экзамен'
-                  }[type]}
+                  {TYPE_LABELS[type]}
                 </OptionItem>
               ))}
             </OptionsList>
@@ -350,8 +126,9 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         </FormGroup>
 
         <FormGroup>
-          <Label>Аудитория</Label>
+          <Label htmlFor="course-location">Аудитория</Label>
           <Input
+            id="course-location"
             name="location"
             value={formData.location}
             onChange={handleChange}
@@ -360,8 +137,9 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         </FormGroup>
 
         <FormGroup>
-          <Label>Преподаватель</Label>
+          <Label htmlFor="course-professor">Преподаватель</Label>
           <Input
+            id="course-professor"
             name="professor"
             value={formData.professor}
             onChange={handleChange}
@@ -388,7 +166,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
                 onClick={() => {
                   const newCourse = {
                     ...formData,
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    id: generateId(),
                   };
                   onSubmit(newCourse as Course);
                 }}
