@@ -100,6 +100,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
           <Label htmlFor="course-type">Тип</Label>
           <CustomSelectWrapper>
             <SelectButton 
+              id="course-type"
               type="button" 
               onClick={() => setIsSelectOpen(!isSelectOpen)}
             >

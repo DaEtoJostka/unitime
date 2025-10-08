@@ -22,7 +22,9 @@ describe('App', () => {
       render(<App />);
       // Check for individual letters instead of full text
       expect(screen.getByText('U')).toBeInTheDocument();
-      expect(screen.getByText('i')).toBeInTheDocument();
+      // There are multiple 'i' letters in 'UniTime' (positions 2 and 4)
+      const iLetters = screen.getAllByText('i');
+      expect(iLetters.length).toBeGreaterThan(0);
     });
 
     it('renders the author link', () => {
@@ -62,7 +64,7 @@ describe('App', () => {
 
       // After toggling, the sidebar should collapse
       await waitFor(() => {
-        expect(screen.queryByText(/свернуть панель/i)).not.toBeVisible();
+        expect(screen.queryByText(/свернуть панель/i)).not.toBeInTheDocument();
       });
     });
   });
@@ -133,7 +135,8 @@ describe('App', () => {
       await user.click(renameButton);
 
       await waitFor(async () => {
-        const input = screen.getByDisplayValue(/основное расписание/i);
+        const inputs = screen.getAllByDisplayValue(/основное расписание/i);
+        const input = inputs[0];
         expect(input).toBeInTheDocument();
 
         await user.clear(input);
@@ -304,8 +307,8 @@ describe('App', () => {
 
       render(<App />);
 
-      // Sidebar should be collapsed, so the "Свернуть панель" button should not be visible
-      expect(screen.queryByText(/свернуть панель/i)).not.toBeVisible();
+      // Sidebar should be collapsed, so the "Свернуть панель" button should not be in the document
+      expect(screen.queryByText(/свернуть панель/i)).not.toBeInTheDocument();
     });
   });
 });

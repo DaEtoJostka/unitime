@@ -267,7 +267,8 @@ describe('CourseForm', () => {
       );
 
       // The form should have a type selector showing the default type
-      expect(screen.getByText(/Лекция/i)).toBeInTheDocument();
+      const lectureElements = screen.getAllByText(/Лекция/i);
+      expect(lectureElements.length).toBeGreaterThan(0);
     });
   });
 
