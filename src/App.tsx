@@ -187,7 +187,7 @@ export const App: React.FC = () => {
                   rel="noopener noreferrer"
                   style={{ cursor: 'pointer', marginTop: '0px' }}
                 >
-                  by 👾 Karlov Ivan
+                  by 👾Ivan and 👀Sergey
                 </AuthorLink>
                 <div style={{ width: '100%', position: 'relative', marginTop: '30px' }}>
                   <SelectNative
