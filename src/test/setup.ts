@@ -45,6 +45,15 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock URL.createObjectURL
-global.URL.createObjectURL = () => 'mock-url';
-global.URL.revokeObjectURL = () => {};
+const url = globalThis.URL as typeof URL & {
+  createObjectURL?: (object?: unknown) => string;
+  revokeObjectURL?: (url?: string) => void;
+};
 
+if (!url.createObjectURL) {
+  url.createObjectURL = () => 'mock-url';
+}
+
+if (!url.revokeObjectURL) {
+  url.revokeObjectURL = () => {};
+}
