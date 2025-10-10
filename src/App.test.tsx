@@ -29,9 +29,9 @@ describe('App', () => {
 
     it('renders the author link', () => {
       render(<App />);
-      const authorLink = screen.getByText(/by 👾 Karlov Ivan/i);
-      expect(authorLink).toBeInTheDocument();
-      expect(authorLink.closest('a')).toHaveAttribute('href', 'https://github.com/DaEtoJostka');
+      const authorLink = screen.getByRole('link', { name: /by/i });
+      expect(authorLink).toHaveTextContent(/by 👾\s*Ivan and 👀\s*Sergey/i);
+      expect(authorLink).toHaveAttribute('href', 'https://github.com/DaEtoJostka');
     });
 
     it('renders the timetable', () => {
