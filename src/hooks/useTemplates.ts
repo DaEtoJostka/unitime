@@ -219,10 +219,19 @@ export const useTemplates = () => {
       const parsedTemplate = await parsePdfToSchedule(file, apiKey);
 
       // Add IDs to courses
-      const coursesWithIds: Course[] = parsedTemplate.courses.map(course => ({
-        ...course,
-        id: generateId()
-      }));
+      const coursesWithIds: Course[] = parsedTemplate.courses.map(course => {
+        const id = generateId();
+        return {
+          id,
+          title: course.title,
+          type: course.type,
+          startTime: course.startTime,
+          endTime: course.endTime,
+          location: course.location,
+          dayOfWeek: course.dayOfWeek,
+          professor: course.professor
+        };
+      });
 
       // Create new template with generated ID
       const newTemplate: ScheduleTemplate = {
