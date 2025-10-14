@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ScheduleTemplate, Course } from '../types/course';
 import { TimeSlot } from '../types/timeSlots';
 import { generateId } from '../utils/idGenerator';
+import { parsePdfToSchedule } from '../services/pdfImportService';
 
 interface ScheduleData {
   templates: ScheduleTemplate[];
@@ -28,7 +29,7 @@ const loadFromStorage = (): ScheduleData => {
         isSidebarCollapsed: isSidebarCollapsed || false
       };
     }
-    
+
     // Backward compatibility with old storage format
     const oldTemplates = localStorage.getItem('scheduleTemplates');
     if (oldTemplates) {
@@ -41,7 +42,7 @@ const loadFromStorage = (): ScheduleData => {
   } catch (error) {
     console.error('Error loading from localStorage:', error);
   }
-  
+
   return {
     templates: [getDefaultTemplate()],
     currentTemplateId: 'default',
@@ -161,9 +162,9 @@ export const useTemplates = () => {
 
   const renameTemplate = useCallback((templateId: string, newName: string) => {
     if (!newName.trim()) return;
-    
-    setTemplates(prev => prev.map(template => 
-      template.id === templateId 
+
+    setTemplates(prev => prev.map(template =>
+      template.id === templateId
         ? { ...template, name: newName.trim() }
         : template
     ));
@@ -195,11 +196,11 @@ export const useTemplates = () => {
       if (!template.name || !template.courses) {
         throw new Error('Неверный формат шаблона');
       }
-      
+
       const newTemplate: ScheduleTemplate = {
         ...template,
         id: generateId(),
-        name: templates.some(t => t.name === template.name) 
+        name: templates.some(t => t.name === template.name)
           ? `${template.name} (импортировано)`
           : template.name
       };
@@ -209,6 +210,38 @@ export const useTemplates = () => {
     } catch (error) {
       console.error('Import error:', error);
       alert('Неверный формат файла шаблона');
+    }
+  }, [templates]);
+
+  const importPdfTemplate = useCallback(async (file: File, apiKey: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Parse PDF using Gemini AI
+      const parsedTemplate = await parsePdfToSchedule(file, apiKey);
+
+      // Add IDs to courses
+      const coursesWithIds: Course[] = parsedTemplate.courses.map(course => ({
+        ...course,
+        id: generateId()
+      }));
+
+      // Create new template with generated ID
+      const newTemplate: ScheduleTemplate = {
+        id: generateId(),
+        name: templates.some(t => t.name === parsedTemplate.name)
+          ? `${parsedTemplate.name} (импортировано)`
+          : parsedTemplate.name,
+        courses: coursesWithIds
+      };
+
+      setTemplates(prev => [...prev, newTemplate]);
+      setCurrentTemplateId(newTemplate.id);
+      setShowSaveNotification(true);
+
+      return { success: true };
+    } catch (error) {
+      console.error('PDF import error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось импортировать PDF';
+      return { success: false, error: errorMessage };
     }
   }, [templates]);
 
@@ -229,7 +262,8 @@ export const useTemplates = () => {
     deleteTemplate,
     renameTemplate,
     exportTemplate,
-    importTemplate
+    importTemplate,
+    importPdfTemplate
   };
 };
 
