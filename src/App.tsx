@@ -3,9 +3,10 @@ import { Course } from './types/course';
 import { TimeSlot } from './types/timeSlots';
 import { Timetable } from './components/Timetable';
 import { CourseForm } from './components/CourseForm';
-import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdEdit, MdAdd, MdDelete, MdChevronLeft, MdChevronRight, MdSettings } from 'react-icons/md';
 import { SelectNative } from './components/ui/select-native';
 import { useTemplates } from './hooks/useTemplates';
+import { ApiKeySettings, getStoredApiKey } from './components/ApiKeySettings';
 import {
   AppContainer,
   LogoArea,
@@ -43,7 +44,8 @@ export const App: React.FC = () => {
     deleteTemplate,
     renameTemplate,
     exportTemplate,
-    importTemplate
+    importTemplate,
+    importPdfTemplate
   } = useTemplates();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,6 +56,8 @@ export const App: React.FC = () => {
   const [editedTemplateName, setEditedTemplateName] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [isWaveAnimating, setIsWaveAnimating] = useState(false);
+  const [showApiSettings, setShowApiSettings] = useState(false);
+  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
 
   const handleAddCourse = (timeSlot: TimeSlot, dayIndex: number) => {
     setSelectedTimeSlot(timeSlot);
@@ -69,7 +73,7 @@ export const App: React.FC = () => {
 
   const handleSubmit = (course: Course) => {
     const isDuplicate = selectedCourse && course.id !== selectedCourse.id;
-    
+
     if (isDuplicate) {
       addCourse(course);
     } else if (selectedCourse) {
@@ -77,7 +81,7 @@ export const App: React.FC = () => {
     } else {
       addCourse(course);
     }
-    
+
     setIsModalOpen(false);
     resetModal();
   };
@@ -130,7 +134,7 @@ export const App: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file && file.type === 'application/json') {
       const reader = new FileReader();
@@ -165,6 +169,36 @@ export const App: React.FC = () => {
     }
   };
 
+  const handlePdfImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+
+    const apiKey = getStoredApiKey();
+    if (!apiKey) {
+      alert('Пожалуйста, сначала настройте API ключ в настройках');
+      setShowApiSettings(true);
+      return;
+    }
+
+    setIsPdfProcessing(true);
+    try {
+      const result = await importPdfTemplate(file, apiKey);
+      if (result.success) {
+        alert('PDF успешно импортирован!');
+      } else {
+        alert(`Ошибка импорта: ${result.error || 'Неизвестная ошибка'}`);
+      }
+    } catch (error) {
+      console.error('PDF import error:', error);
+      alert('Произошла ошибка при импорте PDF');
+    } finally {
+      setIsPdfProcessing(false);
+    }
+  };
+
   return (
     <AppContainer $isSidebarCollapsed={isSidebarCollapsed}>
       <SidebarContainer $collapsed={isSidebarCollapsed}>
@@ -181,7 +215,7 @@ export const App: React.FC = () => {
                   <LogoLetter index={5} $isAnimating={isWaveAnimating}>m</LogoLetter>
                   <LogoLetter index={6} $isAnimating={isWaveAnimating}>e</LogoLetter>
                 </LogoText>
-                <AuthorLink 
+                <AuthorLink
                   href="https://github.com/DaEtoJostka"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -202,7 +236,7 @@ export const App: React.FC = () => {
                       </option>
                     ))}
                   </SelectNative>
-                  
+
                   {editingTemplateId === currentTemplateId && (
                     <input
                       value={editedTemplateName}
@@ -226,22 +260,39 @@ export const App: React.FC = () => {
                   )}
                 </div>
               </LogoArea>
-              
+
               <ActionButtonsContainer>
-                <ActionButton 
+                <ActionButton
                   variant="primary"
                   onClick={() => startEditingTemplate(currentTemplateId)}
                 >
                   <MdEdit /> Переименовать
                 </ActionButton>
-                
-                <ActionButton 
+
+                <ActionButton
                   variant="success"
                   onClick={createTemplate}
                 >
                   <MdAdd /> Новый шаблон
                 </ActionButton>
-                
+
+                <Button
+                  onClick={() => document.getElementById('import-pdf-file')?.click()}
+                  title="Импорт расписания из PDF с помощью AI"
+                  style={{ width: '100%' }}
+                  disabled={isPdfProcessing}
+                >
+                  {isPdfProcessing ? '⏳ Обработка...' : '📄 Импорт из PDF'}
+                </Button>
+
+                <input
+                  id="import-pdf-file"
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handlePdfImport}
+                />
+
                 {templates.length > 1 && (
                   <ActionButton
                     variant="danger"
@@ -282,7 +333,7 @@ export const App: React.FC = () => {
                 >
                   <span>📥 Перетащите файл шаблона сюда или нажмите для выбора</span>
                 </ImportDropZone>
-                
+
                 <input
                   id="import-file"
                   type="file"
@@ -291,7 +342,16 @@ export const App: React.FC = () => {
                   onChange={handleFileImport}
                 />
 
-                <SidebarToggleButton 
+                <ActionButton
+                  variant="primary"
+                  onClick={() => setShowApiSettings(true)}
+                  title="Настройки API"
+                  style={{ width: '100%' }}
+                >
+                  <MdSettings /> Настройки
+                </ActionButton>
+
+                <SidebarToggleButton
                   $collapsed={false}
                   onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 >
@@ -303,8 +363,8 @@ export const App: React.FC = () => {
         </SidebarContent>
         {isSidebarCollapsed && (
           <div className="desktop-only">
-            <SidebarToggleButton 
-              $collapsed={true} 
+            <SidebarToggleButton
+              $collapsed={true}
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             >
               <MdChevronRight />
@@ -312,13 +372,13 @@ export const App: React.FC = () => {
           </div>
         )}
       </SidebarContainer>
-      
+
       {isSidebarCollapsed && (
         <MobileToggleButton onClick={() => setIsSidebarCollapsed(false)}>
           <MdChevronRight />
         </MobileToggleButton>
       )}
-      
+
       <MainContent>
         <Timetable
           key={currentTemplateId}
@@ -348,6 +408,10 @@ export const App: React.FC = () => {
         <SaveNotification>
           Изменения сохранены ✓
         </SaveNotification>
+      )}
+
+      {showApiSettings && (
+        <ApiKeySettings onClose={() => setShowApiSettings(false)} />
       )}
     </AppContainer>
   );
