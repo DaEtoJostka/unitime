@@ -22,37 +22,10 @@ interface ParsedScheduleTemplate {
 
 const VALID_COURSE_TYPES: CourseType[] = ['lecture', 'lab', 'seminar', 'exam', 'practice'];
 
-/**
- * Converts time string to minutes since midnight
- */
-const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-};
-
-/**
- * Normalizes course time to the nearest available time slot
- */
-const normalizeToTimeSlot = (startTime: string, _endTime: string): { startTime: string; endTime: string } => {
-    const startMinutes = timeToMinutes(startTime);
-
-    // Find the closest time slot
-    let closestSlot = DEFAULT_TIME_SLOTS[0];
-    let minDifference = Math.abs(timeToMinutes(closestSlot.startTime) - startMinutes);
-
-    for (const slot of DEFAULT_TIME_SLOTS) {
-        const difference = Math.abs(timeToMinutes(slot.startTime) - startMinutes);
-        if (difference < minDifference) {
-            minDifference = difference;
-            closestSlot = slot;
-        }
-    }
-
-    return {
-        startTime: closestSlot.startTime,
-        endTime: closestSlot.endTime
-    };
-};
+// Available time slots for the schedule
+const AVAILABLE_TIME_SLOTS = DEFAULT_TIME_SLOTS.map(slot =>
+    `${slot.startTime}-${slot.endTime} (${slot.name})`
+).join(', ');
 
 // JSON Schema for structured output
 const RESPONSE_SCHEMA = {
@@ -107,13 +80,21 @@ const RESPONSE_SCHEMA = {
 
 const SCHEDULE_PARSING_PROMPT = `Parse this university schedule PDF and extract all courses/classes.
 
-For each course provide:
+IMPORTANT: Use ONLY these exact time slots (startTime and endTime must match exactly):
+${AVAILABLE_TIME_SLOTS}
+
+For each course:
 - title: the course name
 - type: one of "lecture", "lab", "seminar", "exam", or "practice" (use "lecture" as default)
-- startTime and endTime: in HH:MM format (24-hour). If you see "9:00-10:30", split it into startTime "09:00" and endTime "10:30"
+- startTime and endTime: MUST be from the time slots listed above. Match course time to the NEAREST available slot.
 - location: room or building (use "TBA" if not specified)
 - dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
 - professor: professor name (empty string if not mentioned)
+
+Examples:
+- If course is at 08:30-09:50, use startTime: "08:30", endTime: "09:50"
+- If course is at 13:30-15:00, use the nearest slot: startTime: "13:20", endTime: "14:40"
+- If course is at 10:15-11:45, use the nearest slot: startTime: "10:00", endTime: "11:20"
 
 Include all courses you can identify from the schedule.`;
 
@@ -216,16 +197,20 @@ export const parsePdfToSchedule = async (
                 throw new Error(`Курс ${index + 1}: неверный формат времени`);
             }
 
-            // Normalize time to nearest time slot
-            const normalizedTime = normalizeToTimeSlot(course.startTime, course.endTime);
+            // Validate that time matches one of the available slots
+            const matchesSlot = DEFAULT_TIME_SLOTS.some(slot =>
+                slot.startTime === course.startTime && slot.endTime === course.endTime
+            );
 
-            console.log(`Course "${course.title}": ${course.startTime}-${course.endTime} → ${normalizedTime.startTime}-${normalizedTime.endTime}`);
+            if (!matchesSlot) {
+                console.warn(`Курс "${course.title}" имеет нестандартное время ${course.startTime}-${course.endTime}`);
+            }
 
             return {
                 title: course.title.trim(),
                 type: courseType,
-                startTime: normalizedTime.startTime,
-                endTime: normalizedTime.endTime,
+                startTime: course.startTime,
+                endTime: course.endTime,
                 location: course.location.trim(),
                 dayOfWeek: dayOfWeek,
                 professor: course.professor?.trim() || ''
