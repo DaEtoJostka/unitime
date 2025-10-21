@@ -210,7 +210,7 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
                 </Header>
 
                 <Description>
-                    Для импорта PDF-файлов требуется API ключ Google AI.
+                    Для импорта расписаний (PDF или изображений) требуется API ключ Google AI.
                     Получите бесплатный ключ на{' '}
                     <Link href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
                         Google AI Studio

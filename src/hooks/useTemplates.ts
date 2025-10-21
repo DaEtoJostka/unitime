@@ -215,7 +215,7 @@ export const useTemplates = () => {
 
   const importPdfTemplate = useCallback(async (file: File, apiKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Parse PDF using Gemini AI
+      // Parse schedule document using Gemini AI
       const parsedTemplate = await parsePdfToSchedule(file, apiKey);
 
       // Add IDs to courses
@@ -248,8 +248,8 @@ export const useTemplates = () => {
 
       return { success: true };
     } catch (error) {
-      console.error('PDF import error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Не удалось импортировать PDF';
+      console.error('Schedule import error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось импортировать файл';
       return { success: false, error: errorMessage };
     }
   }, [templates]);
@@ -275,4 +275,3 @@ export const useTemplates = () => {
     importPdfTemplate
   };
 };
-
