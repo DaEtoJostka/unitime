@@ -69,8 +69,11 @@ const Description = styled.p`
 `;
 
 const InputContainer = styled.div`
-  position: relative;
   margin-bottom: 20px;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
 `;
 
 const Label = styled.label`
@@ -97,8 +100,8 @@ const Input = styled.input`
 
 const VisibilityButton = styled.button`
   position: absolute;
-  right: 10px;
   top: 50%;
+  right: 10px;
   transform: translateY(-50%);
   background: none;
   border: none;
@@ -109,7 +112,12 @@ const VisibilityButton = styled.button`
   align-items: center;
   justify-content: center;
   padding: 4px;
+  line-height: 0;
   transition: color 0.2s;
+
+  svg {
+    display: block;
+  }
 
   &:hover {
     color: #333;
@@ -202,7 +210,7 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
                 </Header>
 
                 <Description>
-                    Для импорта PDF-файлов требуется API ключ Google AI.
+                    Для импорта расписаний (PDF или изображений) требуется API ключ Google AI.
                     Получите бесплатный ключ на{' '}
                     <Link href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
                         Google AI Studio
@@ -211,20 +219,22 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
 
                 <InputContainer>
                     <Label htmlFor="api-key-input">Google AI API Key</Label>
-                    <Input
-                        id="api-key-input"
-                        type={showApiKey ? 'text' : 'password'}
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="Введите ваш API ключ"
-                    />
-                    <VisibilityButton
-                        type="button"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        aria-label={showApiKey ? 'Скрыть API ключ' : 'Показать API ключ'}
-                    >
-                        {showApiKey ? <MdVisibilityOff /> : <MdVisibility />}
-                    </VisibilityButton>
+                    <InputWrapper>
+                        <Input
+                            id="api-key-input"
+                            type={showApiKey ? 'text' : 'password'}
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            placeholder="Введите ваш API ключ"
+                        />
+                        <VisibilityButton
+                            type="button"
+                            onClick={() => setShowApiKey(!showApiKey)}
+                            aria-label={showApiKey ? 'Скрыть API ключ' : 'Показать API ключ'}
+                        >
+                            {showApiKey ? <MdVisibilityOff /> : <MdVisibility />}
+                        </VisibilityButton>
+                    </InputWrapper>
                 </InputContainer>
 
                 <ButtonContainer>
@@ -243,4 +253,3 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
 export const getStoredApiKey = (): string | null => {
     return localStorage.getItem(API_KEY_STORAGE_KEY);
 };
-

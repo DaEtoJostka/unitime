@@ -22,6 +22,35 @@ interface ParsedScheduleTemplate {
 
 const VALID_COURSE_TYPES: CourseType[] = ['lecture', 'lab', 'seminar', 'exam', 'practice'];
 
+const SUPPORTED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+
+const EXTENSION_MIME_MAP: Record<string, string> = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg'
+};
+
+const normalizeMimeType = (file: File): string | null => {
+    const rawType = file.type ? file.type.toLowerCase() : '';
+    if (rawType) {
+        if (rawType === 'image/jpg' || rawType === 'image/pjpeg') {
+            return 'image/jpeg';
+        }
+        if (SUPPORTED_MIME_TYPES.has(rawType)) {
+            return rawType;
+        }
+    }
+
+    const nameParts = file.name.split('.');
+    const extension = nameParts.length > 1 ? nameParts.pop()?.toLowerCase() : undefined;
+    if (extension && extension in EXTENSION_MIME_MAP) {
+        return EXTENSION_MIME_MAP[extension];
+    }
+
+    return rawType || null;
+};
+
 // Available time slots for the schedule
 const AVAILABLE_TIME_SLOTS = DEFAULT_TIME_SLOTS.map(slot =>
     `${slot.startTime}-${slot.endTime} (${slot.name})`
@@ -33,7 +62,7 @@ const RESPONSE_SCHEMA = {
     properties: {
         name: {
             type: Type.STRING,
-            description: "Schedule name from PDF"
+            description: "Schedule name from the provided document"
         },
         courses: {
             type: Type.ARRAY,
@@ -78,7 +107,8 @@ const RESPONSE_SCHEMA = {
     propertyOrdering: ['name', 'courses']
 };
 
-const SCHEDULE_PARSING_PROMPT = `Parse this university schedule PDF and extract all courses/classes.
+const SCHEDULE_PARSING_PROMPT = `Parse this university schedule document (PDF or image) and extract all courses/classes.
+The schedule may appear as a scanned timetable, so transcribe any text from the image before structuring the response.
 
 IMPORTANT: Use ONLY these exact time slots (startTime and endTime must match exactly):
 ${AVAILABLE_TIME_SLOTS}
@@ -106,8 +136,10 @@ export const parsePdfToSchedule = async (
         throw new Error('API ключ не предоставлен');
     }
 
-    if (file.type !== 'application/pdf') {
-        throw new Error('Файл должен быть в формате PDF');
+    const mimeType = normalizeMimeType(file);
+
+    if (!mimeType || !SUPPORTED_MIME_TYPES.has(mimeType)) {
+        throw new Error('Файл должен быть в формате PDF, JPG или PNG');
     }
 
     try {
@@ -128,7 +160,7 @@ export const parsePdfToSchedule = async (
             { text: SCHEDULE_PARSING_PROMPT },
             {
                 inlineData: {
-                    mimeType: 'application/pdf',
+                    mimeType,
                     data: base64Data
                 }
             }
@@ -136,7 +168,7 @@ export const parsePdfToSchedule = async (
 
         // Call Gemini API with structured output configuration
         const response = await genAI.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-flash-latest',
             contents: contents,
             config: {
                 responseMimeType: 'application/json',
@@ -224,18 +256,17 @@ export const parsePdfToSchedule = async (
         };
 
     } catch (error) {
-        console.error('PDF parsing error:', error);
+        console.error('Schedule parsing error:', error);
 
         if (error instanceof SyntaxError) {
             console.error('Invalid JSON from AI');
-            throw new Error('AI вернул некорректный JSON. Проверьте консоль для деталей. Попробуйте другой PDF или упростите формат.');
+            throw new Error('AI вернул некорректный JSON. Проверьте консоль для деталей. Попробуйте другой файл или упростите формат.');
         }
 
         if (error instanceof Error) {
             throw error;
         }
 
-        throw new Error('Не удалось распарсить PDF файл');
+        throw new Error('Не удалось распарсить файл');
     }
 };
-

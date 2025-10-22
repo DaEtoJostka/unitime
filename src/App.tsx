@@ -57,7 +57,7 @@ export const App: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [isWaveAnimating, setIsWaveAnimating] = useState(false);
   const [showApiSettings, setShowApiSettings] = useState(false);
-  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
+  const [isDocumentProcessing, setIsDocumentProcessing] = useState(false);
 
   const handleAddCourse = (timeSlot: TimeSlot, dayIndex: number) => {
     setSelectedTimeSlot(timeSlot);
@@ -169,7 +169,7 @@ export const App: React.FC = () => {
     }
   };
 
-  const handlePdfImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -183,19 +183,19 @@ export const App: React.FC = () => {
       return;
     }
 
-    setIsPdfProcessing(true);
+    setIsDocumentProcessing(true);
     try {
       const result = await importPdfTemplate(file, apiKey);
       if (result.success) {
-        alert('PDF успешно импортирован!');
+        alert('Файл успешно импортирован!');
       } else {
         alert(`Ошибка импорта: ${result.error || 'Неизвестная ошибка'}`);
       }
     } catch (error) {
-      console.error('PDF import error:', error);
-      alert('Произошла ошибка при импорте PDF');
+      console.error('Schedule import error:', error);
+      alert('Произошла ошибка при импорте файла');
     } finally {
-      setIsPdfProcessing(false);
+      setIsDocumentProcessing(false);
     }
   };
 
@@ -277,20 +277,20 @@ export const App: React.FC = () => {
                 </ActionButton>
 
                 <Button
-                  onClick={() => document.getElementById('import-pdf-file')?.click()}
-                  title="Импорт расписания из PDF с помощью AI"
+                  onClick={() => document.getElementById('import-schedule-file')?.click()}
+                  title="Импорт расписания из PDF или изображения с помощью AI"
                   style={{ width: '100%' }}
-                  disabled={isPdfProcessing}
+                  disabled={isDocumentProcessing}
                 >
-                  {isPdfProcessing ? '⏳ Обработка...' : '📄 Импорт из PDF'}
+                  {isDocumentProcessing ? '⏳ Обработка...' : '📄 Импорт файла (PDF/JPG/PNG)'}
                 </Button>
 
                 <input
-                  id="import-pdf-file"
+                  id="import-schedule-file"
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,image/png,image/jpeg"
                   style={{ display: 'none' }}
-                  onChange={handlePdfImport}
+                  onChange={handleDocumentImport}
                 />
 
                 {templates.length > 1 && (
