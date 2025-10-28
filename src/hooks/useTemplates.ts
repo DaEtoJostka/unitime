@@ -231,16 +231,14 @@ export const useTemplates = () => {
         }
 
         let attempt = 1;
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        let candidate: string;
+        do {
           const suffix = attempt === 1 ? ' (импортировано)' : ` (импортировано ${attempt})`;
-          const candidate = `${baseName}${suffix}`;
-          if (!existingNames.has(candidate)) {
-            existingNames.add(candidate);
-            return candidate;
-          }
+          candidate = `${baseName}${suffix}`;
           attempt += 1;
-        }
+        } while (existingNames.has(candidate));
+        existingNames.add(candidate);
+        return candidate;
       };
 
       const newTemplates: ScheduleTemplate[] = parsedTemplates.map(template => {
