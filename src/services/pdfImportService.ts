@@ -331,13 +331,13 @@ export const parsePdfToSchedule = async (
         const subgroup2 = ensureSubgroup(parsedData.subgroup2, 'Вторая подгруппа');
 
         const validatedSubgroup1Numerator = ensureCoursesArray(subgroup1.numerator, '1 подгруппа числитель')
-            .map((course, index) => validateCourse(course, '1 подгруппа (числитель)', index + 1));
+            .map((course, index) => validateCourse(course, index + 1, '1 подгруппа (числитель)'));
         const validatedSubgroup1Denominator = ensureCoursesArray(subgroup1.denominator, '1 подгруппа знаменатель')
-            .map((course, index) => validateCourse(course, '1 подгруппа (знаменатель)', index + 1));
+            .map((course, index) => validateCourse(course, index + 1, '1 подгруппа (знаменатель)'));
         const validatedSubgroup2Numerator = ensureCoursesArray(subgroup2.numerator, '2 подгруппа числитель')
-            .map((course, index) => validateCourse(course, '2 подгруппа (числитель)', index + 1));
+            .map((course, index) => validateCourse(course, index + 1, '2 подгруппа (числитель)'));
         const validatedSubgroup2Denominator = ensureCoursesArray(subgroup2.denominator, '2 подгруппа знаменатель')
-            .map((course, index) => validateCourse(course, '2 подгруппа (знаменатель)', index + 1));
+            .map((course, index) => validateCourse(course, index + 1, '2 подгруппа (знаменатель)'));
 
         const baseName = parsedData.scheduleName?.trim() || 'Импортированное расписание';
 
