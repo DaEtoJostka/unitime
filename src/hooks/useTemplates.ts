@@ -216,13 +216,36 @@ export const useTemplates = () => {
   const importPdfTemplate = useCallback(async (file: File, apiKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
       // Parse schedule document using Gemini AI
-      const parsedTemplate = await parsePdfToSchedule(file, apiKey);
+      const parsedTemplates = await parsePdfToSchedule(file, apiKey);
 
-      // Add IDs to courses
-      const coursesWithIds: Course[] = parsedTemplate.courses.map(course => {
-        const id = generateId();
-        return {
-          id,
+      if (!Array.isArray(parsedTemplates) || parsedTemplates.length === 0) {
+        throw new Error('AI не вернул данные расписания');
+      }
+
+      const existingNames = new Set(templates.map(t => t.name));
+
+      const makeUniqueName = (baseName: string): string => {
+        if (!existingNames.has(baseName)) {
+          existingNames.add(baseName);
+          return baseName;
+        }
+
+        let attempt = 1;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const suffix = attempt === 1 ? ' (импортировано)' : ` (импортировано ${attempt})`;
+          const candidate = `${baseName}${suffix}`;
+          if (!existingNames.has(candidate)) {
+            existingNames.add(candidate);
+            return candidate;
+          }
+          attempt += 1;
+        }
+      };
+
+      const newTemplates: ScheduleTemplate[] = parsedTemplates.map(template => {
+        const coursesWithIds: Course[] = template.courses.map(course => ({
+          id: generateId(),
           title: course.title,
           type: course.type,
           startTime: course.startTime,
@@ -230,20 +253,17 @@ export const useTemplates = () => {
           location: course.location,
           dayOfWeek: course.dayOfWeek,
           professor: course.professor
+        }));
+
+        return {
+          id: generateId(),
+          name: makeUniqueName(template.name),
+          courses: coursesWithIds
         };
       });
 
-      // Create new template with generated ID
-      const newTemplate: ScheduleTemplate = {
-        id: generateId(),
-        name: templates.some(t => t.name === parsedTemplate.name)
-          ? `${parsedTemplate.name} (импортировано)`
-          : parsedTemplate.name,
-        courses: coursesWithIds
-      };
-
-      setTemplates(prev => [...prev, newTemplate]);
-      setCurrentTemplateId(newTemplate.id);
+      setTemplates(prev => [...prev, ...newTemplates]);
+      setCurrentTemplateId(newTemplates[0].id);
       setShowSaveNotification(true);
 
       return { success: true };

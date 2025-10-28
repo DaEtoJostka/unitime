@@ -2,17 +2,29 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { Course, CourseType } from '../types/course';
 import { DEFAULT_TIME_SLOTS } from '../types/timeSlots';
 
+interface AIParsedCourse {
+    title: string;
+    type: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    dayOfWeek: number;
+    professor?: string;
+}
+
+interface AIParsedGroupHalf {
+    courses: AIParsedCourse[];
+}
+
+interface AIParsedSubgroup {
+    numerator: AIParsedGroupHalf;
+    denominator: AIParsedGroupHalf;
+}
+
 interface ParsedScheduleData {
-    name: string;
-    courses: Array<{
-        title: string;
-        type: string;
-        startTime: string;
-        endTime: string;
-        location: string;
-        dayOfWeek: number;
-        professor?: string;
-    }>;
+    scheduleName: string;
+    subgroup1: AIParsedSubgroup;
+    subgroup2: AIParsedSubgroup;
 }
 
 interface ParsedScheduleTemplate {
@@ -57,54 +69,89 @@ const AVAILABLE_TIME_SLOTS = DEFAULT_TIME_SLOTS.map(slot =>
 ).join(', ');
 
 // JSON Schema for structured output
+const COURSE_ITEM_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        title: {
+            type: Type.STRING,
+            description: 'Course name'
+        },
+        type: {
+            type: Type.STRING,
+            description: 'Course type: lecture, lab, seminar, exam, or practice'
+        },
+        startTime: {
+            type: Type.STRING,
+            description: 'Start time in HH:MM format (24-hour)'
+        },
+        endTime: {
+            type: Type.STRING,
+            description: 'End time in HH:MM format (24-hour)'
+        },
+        location: {
+            type: Type.STRING,
+            description: 'Room or building location'
+        },
+        dayOfWeek: {
+            type: Type.NUMBER,
+            description: 'Day of week: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday'
+        },
+        professor: {
+            type: Type.STRING,
+            description: 'Professor name (can be empty)'
+        }
+    },
+    required: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek'],
+    propertyOrdering: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek', 'professor']
+};
+
+const GROUP_HALF_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        courses: {
+            type: Type.ARRAY,
+            description: 'Courses for this subgroup and week type',
+            items: COURSE_ITEM_SCHEMA
+        }
+    },
+    required: ['courses'],
+    propertyOrdering: ['courses']
+};
+
+const SUBGROUP_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        numerator: {
+            ...GROUP_HALF_SCHEMA,
+            description: 'Courses for numerator (odd weeks) in this subgroup'
+        },
+        denominator: {
+            ...GROUP_HALF_SCHEMA,
+            description: 'Courses for denominator (even weeks) in this subgroup'
+        }
+    },
+    required: ['numerator', 'denominator'],
+    propertyOrdering: ['numerator', 'denominator']
+};
+
 const RESPONSE_SCHEMA = {
     type: Type.OBJECT,
     properties: {
-        name: {
+        scheduleName: {
             type: Type.STRING,
-            description: "Schedule name from the provided document"
+            description: 'Base schedule name from the provided document'
         },
-        courses: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    title: {
-                        type: Type.STRING,
-                        description: "Course name"
-                    },
-                    type: {
-                        type: Type.STRING,
-                        description: "Course type: lecture, lab, seminar, exam, or practice"
-                    },
-                    startTime: {
-                        type: Type.STRING,
-                        description: "Start time in HH:MM format (24-hour)"
-                    },
-                    endTime: {
-                        type: Type.STRING,
-                        description: "End time in HH:MM format (24-hour)"
-                    },
-                    location: {
-                        type: Type.STRING,
-                        description: "Room or building location"
-                    },
-                    dayOfWeek: {
-                        type: Type.NUMBER,
-                        description: "Day of week: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday"
-                    },
-                    professor: {
-                        type: Type.STRING,
-                        description: "Professor name (can be empty)"
-                    }
-                },
-                required: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek'],
-                propertyOrdering: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek', 'professor']
-            }
+        subgroup1: {
+            ...SUBGROUP_SCHEMA,
+            description: 'First subgroup split by week type'
+        },
+        subgroup2: {
+            ...SUBGROUP_SCHEMA,
+            description: 'Second subgroup split by week type'
         }
     },
-    required: ['name', 'courses'],
-    propertyOrdering: ['name', 'courses']
+    required: ['scheduleName', 'subgroup1', 'subgroup2'],
+    propertyOrdering: ['scheduleName', 'subgroup1', 'subgroup2']
 };
 
 const SCHEDULE_PARSING_PROMPT = `Parse this university schedule document (PDF or image) and extract all courses/classes.
@@ -113,7 +160,20 @@ The schedule may appear as a scanned timetable, so transcribe any text from the 
 IMPORTANT: Use ONLY these exact time slots (startTime and endTime must match exactly):
 ${AVAILABLE_TIME_SLOTS}
 
-For each course:
+Split the timetable into four distinct course lists:
+- subgroup1.numerator: lessons for the 1st subgroup during numerator/odd weeks.
+- subgroup1.denominator: lessons for the 1st subgroup during denominator/even weeks.
+- subgroup2.numerator: lessons for the 2nd subgroup during numerator/odd weeks.
+- subgroup2.denominator: lessons for the 2nd subgroup during denominator/even weeks.
+
+Parsing rules:
+- If a timetable row has two parallel cells, the left/first cell is for subgroup 1 and the right/second cell is for subgroup 2.
+- If a row has only one cell for a time slot, treat that lesson as common to both subgroups (duplicate it into subgroup1 and subgroup2).
+- Within a cell, split numerator vs denominator by the delimiter "//". Content before "//" belongs to the numerator; content after "//" belongs to the denominator.
+- If "//" is missing, assume the lesson applies to both week types and duplicate it into numerator and denominator.
+- Provide empty course arrays when a subgroup/week combination has no lessons.
+
+For each course entry:
 - title: the course name
 - type: one of "lecture", "lab", "seminar", "exam", or "practice" (use "lecture" as default)
 - startTime and endTime: MUST be from the time slots listed above. Match course time to the NEAREST available slot.
@@ -131,7 +191,7 @@ Include all courses you can identify from the schedule.`;
 export const parsePdfToSchedule = async (
     file: File,
     apiKey: string
-): Promise<ParsedScheduleTemplate> => {
+): Promise<ParsedScheduleTemplate[]> => {
     if (!apiKey || apiKey.trim() === '') {
         throw new Error('API ключ не предоставлен');
     }
@@ -177,7 +237,7 @@ export const parsePdfToSchedule = async (
         });
 
         // Extract text from response (already guaranteed to be valid JSON)
-        let responseText = response.text;
+        const responseText = response.text;
 
         if (!responseText) {
             throw new Error('Пустой ответ от AI');
@@ -192,14 +252,15 @@ export const parsePdfToSchedule = async (
         // Log parsed data for debugging
         console.log('Parsed data from AI:', parsedData);
 
-        // Validate structure
-        if (!parsedData.name || !Array.isArray(parsedData.courses)) {
+        if (!parsedData || typeof parsedData !== 'object') {
             throw new Error('Неверная структура данных от AI');
         }
 
-        // Validate and normalize courses
-        const validatedCourses: Omit<Course, 'id'>[] = parsedData.courses.map((course, index) => {
-            // Validate required fields with detailed error messages
+        const validateCourse = (course: AIParsedCourse, index: number, context: string): Omit<Course, 'id'> => {
+            if (!course || typeof course !== 'object') {
+                throw new Error(`${context}: некорректные данные курса по индексу ${index}`);
+            }
+
             const missingFields: string[] = [];
             if (!course.title || course.title.trim() === '') missingFields.push('title');
             if (!course.startTime || course.startTime.trim() === '') missingFields.push('startTime');
@@ -207,35 +268,31 @@ export const parsePdfToSchedule = async (
             if (!course.location || course.location.trim() === '') missingFields.push('location');
 
             if (missingFields.length > 0) {
-                throw new Error(`Курс ${index + 1}: отсутствуют обязательные поля: ${missingFields.join(', ')}. Данные курса: ${JSON.stringify(course)}`);
+                throw new Error(`${context}: отсутствуют обязательные поля (${missingFields.join(', ')}). Данные курса: ${JSON.stringify(course)}`);
             }
 
-            // Validate and normalize type
             let courseType: CourseType = 'lecture';
-            const normalizedType = course.type.toLowerCase();
-            if (VALID_COURSE_TYPES.includes(normalizedType as CourseType)) {
+            const normalizedType = typeof course.type === 'string' ? course.type.toLowerCase() : '';
+            if (normalizedType && VALID_COURSE_TYPES.includes(normalizedType as CourseType)) {
                 courseType = normalizedType as CourseType;
             }
 
-            // Validate dayOfWeek
             const dayOfWeek = Number(course.dayOfWeek);
-            if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
-                throw new Error(`Курс ${index + 1}: неверный день недели (${course.dayOfWeek})`);
+            if (Number.isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
+                throw new Error(`${context}: неверный день недели (${course.dayOfWeek})`);
             }
 
-            // Validate time format
             const timeRegex = /^\d{1,2}:\d{2}$/;
             if (!timeRegex.test(course.startTime) || !timeRegex.test(course.endTime)) {
-                throw new Error(`Курс ${index + 1}: неверный формат времени`);
+                throw new Error(`${context}: неверный формат времени (${course.startTime}-${course.endTime})`);
             }
 
-            // Validate that time matches one of the available slots
             const matchesSlot = DEFAULT_TIME_SLOTS.some(slot =>
                 slot.startTime === course.startTime && slot.endTime === course.endTime
             );
 
             if (!matchesSlot) {
-                console.warn(`Курс "${course.title}" имеет нестандартное время ${course.startTime}-${course.endTime}`);
+                console.warn(`${context}: курс "${course.title}" имеет нестандартное время ${course.startTime}-${course.endTime}`);
             }
 
             return {
@@ -247,13 +304,63 @@ export const parsePdfToSchedule = async (
                 dayOfWeek: dayOfWeek,
                 professor: course.professor?.trim() || ''
             };
-        });
-
-        // Return without IDs (will be generated by useTemplates)
-        return {
-            name: parsedData.name.trim() || 'Импортированное расписание',
-            courses: validatedCourses
         };
+
+        const ensureCoursesArray = (half: AIParsedGroupHalf | undefined, context: string): AIParsedCourse[] => {
+            if (!half) {
+                console.warn(`${context}: отсутствует блок, используется пустой список`);
+                return [];
+            }
+
+            if (!Array.isArray(half.courses)) {
+                throw new Error(`${context}: ожидается массив courses`);
+            }
+
+            return half.courses;
+        };
+
+        const ensureSubgroup = (subgroup: AIParsedSubgroup | undefined, context: string): AIParsedSubgroup => {
+            if (!subgroup) {
+                throw new Error(`${context}: отсутствуют данные подгруппы`);
+            }
+
+            return subgroup;
+        };
+
+        const subgroup1 = ensureSubgroup(parsedData.subgroup1, 'Первая подгруппа');
+        const subgroup2 = ensureSubgroup(parsedData.subgroup2, 'Вторая подгруппа');
+
+        const validatedSubgroup1Numerator = ensureCoursesArray(subgroup1.numerator, '1 подгруппа числитель')
+            .map((course, index) => validateCourse(course, '1 подгруппа (числитель)', index + 1));
+        const validatedSubgroup1Denominator = ensureCoursesArray(subgroup1.denominator, '1 подгруппа знаменатель')
+            .map((course, index) => validateCourse(course, '1 подгруппа (знаменатель)', index + 1));
+        const validatedSubgroup2Numerator = ensureCoursesArray(subgroup2.numerator, '2 подгруппа числитель')
+            .map((course, index) => validateCourse(course, '2 подгруппа (числитель)', index + 1));
+        const validatedSubgroup2Denominator = ensureCoursesArray(subgroup2.denominator, '2 подгруппа знаменатель')
+            .map((course, index) => validateCourse(course, '2 подгруппа (знаменатель)', index + 1));
+
+        const baseName = parsedData.scheduleName?.trim() || 'Импортированное расписание';
+
+        const templates: ParsedScheduleTemplate[] = [
+            {
+                name: `${baseName} - 1 подгруппа - числитель`,
+                courses: validatedSubgroup1Numerator
+            },
+            {
+                name: `${baseName} - 1 подгруппа - знаменатель`,
+                courses: validatedSubgroup1Denominator
+            },
+            {
+                name: `${baseName} - 2 подгруппа - числитель`,
+                courses: validatedSubgroup2Numerator
+            },
+            {
+                name: `${baseName} - 2 подгруппа - знаменатель`,
+                courses: validatedSubgroup2Denominator
+            }
+        ];
+
+        return templates;
 
     } catch (error) {
         console.error('Schedule parsing error:', error);
