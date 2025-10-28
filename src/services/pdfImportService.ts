@@ -360,6 +360,11 @@ export const parsePdfToSchedule = async (
             }
         ];
 
+        // Validate that at least one template has courses
+        const hasCourses = templates.some(template => Array.isArray(template.courses) && template.courses.length > 0);
+        if (!hasCourses) {
+            throw new Error('Не найдено ни одного курса в файле. Импорт не может быть выполнен.');
+        }
         return templates;
 
     } catch (error) {
