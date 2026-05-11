@@ -37,7 +37,7 @@ export const LogoText = styled.div`
   font-size: 48px;
   font-weight: bold;
   --logo-gradient-animation: none;
-  color: #009688;
+  color: #03a9f4;
   transition: all 0.3s ease;
   cursor: pointer;
   margin-bottom: 4px;
@@ -63,7 +63,7 @@ export const LogoText = styled.div`
 
   &:hover {
     --logo-gradient-animation: colorFlow 60s linear infinite;
-    text-shadow: 0 0 10px rgba(0, 150, 136, 0.3);
+    text-shadow: 0 0 10px rgba(3, 169, 244, 0.3);
 
     span {
       background-image: linear-gradient(
