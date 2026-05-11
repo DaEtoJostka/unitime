@@ -36,11 +36,7 @@ export const LogoArea = styled.div`
 export const LogoText = styled.div`
   font-size: 48px;
   font-weight: bold;
-  background: linear-gradient(
-    to right,
-    #6a0dad, #9c27b0, #e91e63, #f44336, #ff9800, #ffc107, #ffeb3b, #cddc39,
-    #8bc34a, #4caf50, #009688, #03a9f4, #2196f3, #3f51b5, #6a0dad
-  );
+  background: #6a0dad;
   background-size: 1000% auto;
   color: transparent;
   -webkit-background-clip: text;
@@ -48,7 +44,7 @@ export const LogoText = styled.div`
   transition: all 0.3s ease;
   cursor: pointer;
   margin-bottom: 4px;
-  animation: colorFlow 60s linear infinite;
+  animation: none;
   display: inline-block;
 
   @keyframes colorFlow {
@@ -70,6 +66,12 @@ export const LogoText = styled.div`
   }
 
   &:hover {
+    background: linear-gradient(
+      to right,
+      #6a0dad, #9c27b0, #e91e63, #f44336, #ff9800, #ffc107, #ffeb3b, #cddc39,
+      #8bc34a, #4caf50, #009688, #03a9f4, #2196f3, #3f51b5, #6a0dad
+    );
+    background-size: 1000% auto;
     animation: colorFlow 60s linear infinite;
     text-shadow: 0 0 10px rgba(106, 13, 173, 0.3);
   }
@@ -447,4 +449,3 @@ export const MobileToggleButton = styled.button`
     }
   }
 `;
-
