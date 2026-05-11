@@ -21,7 +21,7 @@ export const CourseBlock: React.FC<CourseBlockProps> = ({ course, onEdit }) => {
     <>
       <GlobalStyle $isDragging={isDragging} />
       <CourseWrapper
-        ref={drag}
+        ref={drag as any}
         type={course.type}
         $isDragging={isDragging}
         onClick={() => onEdit?.(course)}

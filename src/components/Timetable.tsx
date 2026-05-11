@@ -63,7 +63,7 @@ const DropTarget: React.FC<DropTargetProps> = ({
 
   return (
     <CoursesContainer 
-      ref={drop} 
+      ref={drop as any} 
       className={`${isOver ? 'can-drop' : ''} ${isTapped ? 'tapped' : ''}`}
       $isCurrent={$isCurrent}
       $isFirstDay={$isFirstDay}
