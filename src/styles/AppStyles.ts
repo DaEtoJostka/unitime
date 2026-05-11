@@ -36,15 +36,11 @@ export const LogoArea = styled.div`
 export const LogoText = styled.div`
   font-size: 48px;
   font-weight: bold;
-  background: #6a0dad;
-  background-size: 1000% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
+  --logo-gradient-animation: none;
+  color: #009688;
   transition: all 0.3s ease;
   cursor: pointer;
   margin-bottom: 4px;
-  animation: none;
   display: inline-block;
 
   @keyframes colorFlow {
@@ -66,14 +62,20 @@ export const LogoText = styled.div`
   }
 
   &:hover {
-    background: linear-gradient(
-      to right,
-      #6a0dad, #9c27b0, #e91e63, #f44336, #ff9800, #ffc107, #ffeb3b, #cddc39,
-      #8bc34a, #4caf50, #009688, #03a9f4, #2196f3, #3f51b5, #6a0dad
-    );
-    background-size: 1000% auto;
-    animation: colorFlow 60s linear infinite;
-    text-shadow: 0 0 10px rgba(106, 13, 173, 0.3);
+    --logo-gradient-animation: colorFlow 60s linear infinite;
+    text-shadow: 0 0 10px rgba(0, 150, 136, 0.3);
+
+    span {
+      background-image: linear-gradient(
+        to right,
+        #6a0dad, #9c27b0, #e91e63, #f44336, #ff9800, #ffc107, #ffeb3b, #cddc39,
+        #8bc34a, #4caf50, #009688, #03a9f4, #2196f3, #3f51b5, #6a0dad
+      );
+      background-size: 1000% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
   }
   
   @media (max-width: 768px) {
@@ -83,13 +85,10 @@ export const LogoText = styled.div`
 
 export const LogoLetter = styled.span<{ index: number; $isAnimating: boolean }>`
   display: inline-block;
-  animation: ${props => props.$isAnimating ? 'waveAnimation 0.6s ease' : 'none'};
-  animation-delay: ${props => props.$isAnimating ? `${props.index * 0.07}s` : '0s'};
-  animation-fill-mode: forwards;
-  background: inherit;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  animation: ${props => props.$isAnimating
+    ? `waveAnimation 0.6s ease ${props.index * 0.07}s forwards, var(--logo-gradient-animation)`
+    : 'var(--logo-gradient-animation)'};
+  color: inherit;
 `;
 
 export const AuthorLink = styled.a`
