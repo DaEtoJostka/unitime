@@ -30,7 +30,7 @@ describe('App', () => {
     it('renders the author link', () => {
       render(<App />);
       const authorLink = screen.getByRole('link', { name: /by/i });
-      expect(authorLink).toHaveTextContent(/by 👾\s*Ivan and 👀\s*Sergey/i);
+      expect(authorLink).toHaveTextContent(/by 👾\s*Ivan,\s*👀\s*Alexander and 🌚\s*Denis/i);
       expect(authorLink).toHaveAttribute('href', 'https://github.com/DaEtoJostka');
     });
 
