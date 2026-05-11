@@ -221,7 +221,7 @@ export const App: React.FC = () => {
                   rel="noopener noreferrer"
                   style={{ cursor: 'pointer', marginTop: '0px' }}
                 >
-                  by 👾Ivan, 👀Alexander and 🌚Denis
+                  by 👾Ivan, 👀Alex and 🌚Den
                 </AuthorLink>
                 <div style={{ width: '100%', position: 'relative', marginTop: '30px' }}>
                   <SelectNative
