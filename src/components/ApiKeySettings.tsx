@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { MdVisibility, MdVisibilityOff, MdClose } from 'react-icons/md';
 
-const API_KEY_STORAGE_KEY = 'openRouterApiKey';
-const LEGACY_API_KEY_STORAGE_KEY = 'googleAiApiKey';
+const API_KEY_STORAGE_KEY = 'googleAiApiKey';
 
 interface ApiKeySettingsProps {
     onClose: () => void;
@@ -180,12 +179,6 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
         const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
         if (savedKey) {
             setApiKey(savedKey);
-            return;
-        }
-
-        const legacyKey = localStorage.getItem(LEGACY_API_KEY_STORAGE_KEY);
-        if (legacyKey) {
-            setApiKey(legacyKey);
         }
     }, []);
 
@@ -202,7 +195,6 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
     const handleClear = () => {
         if (window.confirm('Вы уверены, что хотите удалить сохраненный API ключ?')) {
             localStorage.removeItem(API_KEY_STORAGE_KEY);
-            localStorage.removeItem(LEGACY_API_KEY_STORAGE_KEY);
             setApiKey('');
         }
     };
@@ -218,15 +210,15 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
                 </Header>
 
                 <Description>
-                    Для импорта расписаний (PDF или изображений) требуется API ключ OpenRouter.
-                    Получите ключ на{' '}
-                    <Link href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">
-                        OpenRouter
+                    Для импорта расписаний (PDF или изображений) требуется API ключ Google AI.
+                    Получите бесплатный ключ на{' '}
+                    <Link href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
+                        Google AI Studio
                     </Link>
                 </Description>
 
                 <InputContainer>
-                    <Label htmlFor="api-key-input">OpenRouter API Key</Label>
+                    <Label htmlFor="api-key-input">Google AI API Key</Label>
                     <InputWrapper>
                         <Input
                             id="api-key-input"

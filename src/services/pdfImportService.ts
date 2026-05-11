@@ -1,3 +1,4 @@
+import { GoogleGenAI, Type } from '@google/genai';
 import { Course, CourseType } from '../types/course';
 import { DEFAULT_TIME_SLOTS } from '../types/timeSlots';
 
@@ -31,58 +32,9 @@ interface ParsedScheduleTemplate {
     courses: Omit<Course, 'id'>[];
 }
 
-type JsonSchemaType = 'object' | 'array' | 'string' | 'number';
-
-interface JsonSchema {
-    type: JsonSchemaType;
-    description?: string;
-    properties?: Record<string, JsonSchema>;
-    items?: JsonSchema;
-    required?: string[];
-    additionalProperties?: boolean;
-}
-
-interface OpenRouterMessageTextContent {
-    type: 'text';
-    text: string;
-}
-
-interface OpenRouterMessageImageContent {
-    type: 'image_url';
-    image_url: {
-        url: string;
-    };
-}
-
-interface OpenRouterMessageFileContent {
-    type: 'file';
-    file: {
-        filename: string;
-        file_data: string;
-    };
-}
-
-type OpenRouterMessageContent =
-    | OpenRouterMessageTextContent
-    | OpenRouterMessageImageContent
-    | OpenRouterMessageFileContent;
-
-interface OpenRouterChatResponse {
-    choices?: Array<{
-        message?: {
-            content?: string | null;
-        };
-    }>;
-    error?: {
-        message?: string;
-    };
-}
-
 const VALID_COURSE_TYPES: CourseType[] = ['lecture', 'lab', 'seminar', 'exam', 'practice'];
 
 const SUPPORTED_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg']);
-const OPENROUTER_CHAT_COMPLETIONS_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const OPENROUTER_MODEL = '~google/gemini-flash-latest';
 
 const EXTENSION_MIME_MAP: Record<string, string> = {
     pdf: 'application/pdf',
@@ -116,57 +68,58 @@ const AVAILABLE_TIME_SLOTS = DEFAULT_TIME_SLOTS.map(slot =>
     `${slot.startTime}-${slot.endTime} (${slot.name})`
 ).join(', ');
 
-const COURSE_ITEM_SCHEMA: JsonSchema = {
-    type: 'object',
+// JSON Schema for structured output
+const COURSE_ITEM_SCHEMA = {
+    type: Type.OBJECT,
     properties: {
         title: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Course name'
         },
         type: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Course type: lecture, lab, seminar, exam, or practice'
         },
         startTime: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Start time in HH:MM format (24-hour)'
         },
         endTime: {
-            type: 'string',
+            type: Type.STRING,
             description: 'End time in HH:MM format (24-hour)'
         },
         location: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Room or building location'
         },
         dayOfWeek: {
-            type: 'number',
+            type: Type.NUMBER,
             description: 'Day of week: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday'
         },
         professor: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Professor name (can be empty)'
         }
     },
     required: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek'],
-    additionalProperties: false
+    propertyOrdering: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek', 'professor']
 };
 
-const GROUP_HALF_SCHEMA: JsonSchema = {
-    type: 'object',
+const GROUP_HALF_SCHEMA = {
+    type: Type.OBJECT,
     properties: {
         courses: {
-            type: 'array',
+            type: Type.ARRAY,
             description: 'Courses for this subgroup and week type',
             items: COURSE_ITEM_SCHEMA
         }
     },
     required: ['courses'],
-    additionalProperties: false
+    propertyOrdering: ['courses']
 };
 
-const SUBGROUP_SCHEMA: JsonSchema = {
-    type: 'object',
+const SUBGROUP_SCHEMA = {
+    type: Type.OBJECT,
     properties: {
         numerator: {
             ...GROUP_HALF_SCHEMA,
@@ -178,14 +131,14 @@ const SUBGROUP_SCHEMA: JsonSchema = {
         }
     },
     required: ['numerator', 'denominator'],
-    additionalProperties: false
+    propertyOrdering: ['numerator', 'denominator']
 };
 
-const RESPONSE_SCHEMA: JsonSchema = {
-    type: 'object',
+const RESPONSE_SCHEMA = {
+    type: Type.OBJECT,
     properties: {
         scheduleName: {
-            type: 'string',
+            type: Type.STRING,
             description: 'Base schedule name from the provided document'
         },
         subgroup1: {
@@ -198,7 +151,7 @@ const RESPONSE_SCHEMA: JsonSchema = {
         }
     },
     required: ['scheduleName', 'subgroup1', 'subgroup2'],
-    additionalProperties: false
+    propertyOrdering: ['scheduleName', 'subgroup1', 'subgroup2']
 };
 
 const SCHEDULE_PARSING_PROMPT = `Parse this university schedule document (PDF or image) and extract all courses/classes.
@@ -235,47 +188,6 @@ Examples:
 
 Include all courses you can identify from the schedule.`;
 
-const readFileAsBase64 = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-};
-
-const createDocumentContent = async (file: File, mimeType: string): Promise<OpenRouterMessageContent> => {
-    const base64Data = await readFileAsBase64(file);
-    const dataUrl = `data:${mimeType};base64,${base64Data}`;
-
-    if (mimeType === 'application/pdf') {
-        return {
-            type: 'file',
-            file: {
-                filename: file.name || 'schedule.pdf',
-                file_data: dataUrl
-            }
-        };
-    }
-
-    return {
-        type: 'image_url',
-        image_url: {
-            url: dataUrl
-        }
-    };
-};
-
-const extractOpenRouterContent = (response: OpenRouterChatResponse): string => {
-    const responseText = response.choices?.[0]?.message?.content;
-    if (!responseText) {
-        throw new Error('Пустой ответ от AI');
-    }
-
-    return responseText;
-};
-
 export const parsePdfToSchedule = async (
     file: File,
     apiKey: string
@@ -291,56 +203,45 @@ export const parsePdfToSchedule = async (
     }
 
     try {
-        const documentContent = await createDocumentContent(file, mimeType);
-        const contents: OpenRouterMessageContent[] = [
+        // Initialize Google AI client
+        const genAI = new GoogleGenAI({ apiKey: apiKey.trim() });
+
+        // Read file as ArrayBuffer and convert to base64
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        const base64Data = btoa(binary);
+
+        // Prepare the request with structured output
+        const contents = [
+            { text: SCHEDULE_PARSING_PROMPT },
             {
-                type: 'text',
-                text: SCHEDULE_PARSING_PROMPT
-            },
-            documentContent
+                inlineData: {
+                    mimeType,
+                    data: base64Data
+                }
+            }
         ];
 
-        const response = await fetch(OPENROUTER_CHAT_COMPLETIONS_URL, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${apiKey.trim()}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': window.location.origin,
-                'X-OpenRouter-Title': 'Unitime'
-            },
-            body: JSON.stringify({
-                model: OPENROUTER_MODEL,
-                messages: [
-                    {
-                        role: 'user',
-                        content: contents
-                    }
-                ],
-                response_format: {
-                    type: 'json_schema',
-                    json_schema: {
-                        name: 'schedule',
-                        strict: true,
-                        schema: RESPONSE_SCHEMA
-                    }
-                },
-                plugins: mimeType === 'application/pdf' ? [
-                    {
-                        id: 'file-parser',
-                        pdf: {
-                            engine: 'cloudflare-ai'
-                        }
-                    }
-                ] : undefined
-            })
+        // Call Gemini API with structured output configuration
+        const response = await genAI.models.generateContent({
+            model: 'gemini-flash-latest',
+            contents: contents,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: RESPONSE_SCHEMA
+            }
         });
 
-        const responseBody: OpenRouterChatResponse = await response.json();
-        if (!response.ok) {
-            throw new Error(responseBody.error?.message || 'Ошибка OpenRouter API');
-        }
+        // Extract text from response (already guaranteed to be valid JSON)
+        const responseText = response.text;
 
-        const responseText = extractOpenRouterContent(responseBody);
+        if (!responseText) {
+            throw new Error('Пустой ответ от AI');
+        }
 
         // Log response for debugging
         console.log('AI JSON response:', responseText);
