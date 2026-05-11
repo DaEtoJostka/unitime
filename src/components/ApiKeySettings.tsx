@@ -5,6 +5,11 @@ import { MdVisibility, MdVisibilityOff, MdClose } from 'react-icons/md';
 const API_KEY_STORAGE_KEY = 'openRouterApiKey';
 const LEGACY_API_KEY_STORAGE_KEY = 'googleAiApiKey';
 
+const getPersistedApiKey = (): string | null => {
+    return localStorage.getItem(API_KEY_STORAGE_KEY)
+        || localStorage.getItem(LEGACY_API_KEY_STORAGE_KEY);
+};
+
 interface ApiKeySettingsProps {
     onClose: () => void;
 }
@@ -177,15 +182,9 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
     const [showApiKey, setShowApiKey] = useState(false);
 
     useEffect(() => {
-        const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+        const savedKey = getPersistedApiKey();
         if (savedKey) {
             setApiKey(savedKey);
-            return;
-        }
-
-        const legacyKey = localStorage.getItem(LEGACY_API_KEY_STORAGE_KEY);
-        if (legacyKey) {
-            setApiKey(legacyKey);
         }
     }, []);
 
@@ -259,5 +258,5 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
 };
 
 export const getStoredApiKey = (): string | null => {
-    return localStorage.getItem(API_KEY_STORAGE_KEY);
+    return getPersistedApiKey();
 };

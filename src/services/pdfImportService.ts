@@ -40,6 +40,7 @@ interface JsonSchema {
     items?: JsonSchema;
     required?: string[];
     additionalProperties?: boolean;
+    enum?: string[];
 }
 
 interface OpenRouterMessageTextContent {
@@ -125,7 +126,8 @@ const COURSE_ITEM_SCHEMA: JsonSchema = {
         },
         type: {
             type: 'string',
-            description: 'Course type: lecture, lab, seminar, exam, or practice'
+            description: 'Course type: lecture, lab, seminar, exam, or practice',
+            enum: VALID_COURSE_TYPES
         },
         startTime: {
             type: 'string',
@@ -148,7 +150,7 @@ const COURSE_ITEM_SCHEMA: JsonSchema = {
             description: 'Professor name (can be empty)'
         }
     },
-    required: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek'],
+    required: ['title', 'type', 'startTime', 'endTime', 'location', 'dayOfWeek', 'professor'],
     additionalProperties: false
 };
 
