@@ -215,7 +215,7 @@ export const useTemplates = () => {
 
   const importPdfTemplate = useCallback(async (file: File, apiKey: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Parse schedule document using OpenRouter AI
+      // Parse schedule document using Gemini AI
       const parsedTemplates = await parsePdfToSchedule(file, apiKey);
 
       if (!Array.isArray(parsedTemplates) || parsedTemplates.length === 0) {
