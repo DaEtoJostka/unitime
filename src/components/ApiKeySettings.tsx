@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { MdVisibility, MdVisibilityOff, MdClose } from 'react-icons/md';
 
-const API_KEY_STORAGE_KEY = 'googleAiApiKey';
+const API_KEY_STORAGE_KEY = 'openRouterApiKey';
+const LEGACY_API_KEY_STORAGE_KEY = 'googleAiApiKey';
+
+const getPersistedApiKey = (): string | null => {
+    return localStorage.getItem(API_KEY_STORAGE_KEY)
+        || localStorage.getItem(LEGACY_API_KEY_STORAGE_KEY);
+};
 
 interface ApiKeySettingsProps {
     onClose: () => void;
@@ -176,7 +182,7 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
     const [showApiKey, setShowApiKey] = useState(false);
 
     useEffect(() => {
-        const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+        const savedKey = getPersistedApiKey();
         if (savedKey) {
             setApiKey(savedKey);
         }
@@ -195,6 +201,7 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
     const handleClear = () => {
         if (window.confirm('Вы уверены, что хотите удалить сохраненный API ключ?')) {
             localStorage.removeItem(API_KEY_STORAGE_KEY);
+            localStorage.removeItem(LEGACY_API_KEY_STORAGE_KEY);
             setApiKey('');
         }
     };
@@ -210,15 +217,15 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
                 </Header>
 
                 <Description>
-                    Для импорта расписаний (PDF или изображений) требуется API ключ Google AI.
-                    Получите бесплатный ключ на{' '}
-                    <Link href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">
-                        Google AI Studio
+                    Для импорта расписаний (PDF или изображений) требуется API ключ OpenRouter.
+                    Получите ключ на{' '}
+                    <Link href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">
+                        OpenRouter
                     </Link>
                 </Description>
 
                 <InputContainer>
-                    <Label htmlFor="api-key-input">Google AI API Key</Label>
+                    <Label htmlFor="api-key-input">OpenRouter API Key</Label>
                     <InputWrapper>
                         <Input
                             id="api-key-input"
@@ -251,5 +258,5 @@ export const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onClose }) => {
 };
 
 export const getStoredApiKey = (): string | null => {
-    return localStorage.getItem(API_KEY_STORAGE_KEY);
+    return getPersistedApiKey();
 };
