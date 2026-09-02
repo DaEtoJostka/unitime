@@ -228,7 +228,7 @@ export const parsePdfToSchedule = async (
 
         // Call Gemini API with structured output configuration
         const response = await genAI.models.generateContent({
-            model: 'gemini-flash-latest',
+            model: 'gemini-3.7-flash',
             contents: contents,
             config: {
                 responseMimeType: 'application/json',
